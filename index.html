@@ -3,812 +3,353 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diesel S10 · Expresso Unir</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Gestão Diesel S10 · Expresso Unir</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0f1a;
-    --surface: #111827;
-    --surface2: #1a2236;
-    --border: rgba(255,255,255,0.07);
-    --accent: #f59e0b;
-    --accent2: #3b82f6;
-    --ok: #10b981;
-    --warn: #ef4444;
-    --critical: #ff3366;
-    --neutral: #6b7280;
-    --text: #f1f5f9;
-    --text2: #94a3b8;
-    --text3: #475569;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* BG noise texture */
-  body::before {
-    content:'';
-    position:fixed; inset:0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events:none; z-index:0;
-  }
-
-  /* ── HEADER ── */
-  header {
-    position: relative;
-    padding: 36px 48px 28px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-  }
-  header::after {
-    content:'';
-    position:absolute; bottom:-1px; left:48px;
-    width:80px; height:2px;
-    background: var(--accent);
-  }
-  .logo-block h1 {
-    font-family:'Syne',sans-serif;
-    font-size: 26px; font-weight:800; letter-spacing:-0.5px;
-    color: var(--text);
-  }
-  .logo-block h1 span { color: var(--accent); }
-  .logo-block p {
-    font-size:12px; color:var(--text3); margin-top:4px;
-    font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase;
-  }
-  .header-meta {
-    text-align:right;
-    font-family:'DM Mono',monospace; font-size:11px; color:var(--text3);
-    letter-spacing:.5px;
-  }
-  .header-meta strong { color:var(--accent); font-size:13px; display:block; }
-
-  /* ── NAV TABS ── */
-  nav {
-    display:flex; gap:0; padding: 0 48px;
-    border-bottom:1px solid var(--border);
-    overflow-x:auto;
-  }
-  nav button {
-    padding: 16px 24px;
-    background:none; border:none; border-bottom:2px solid transparent;
-    color:var(--text3); cursor:pointer; font:500 13px 'DM Sans',sans-serif;
-    letter-spacing:.3px; transition: all .2s; white-space:nowrap;
-  }
-  nav button:hover { color:var(--text2); }
-  nav button.active { color:var(--accent); border-bottom-color:var(--accent); }
-
-  /* ── MAIN ── */
-  main { padding: 36px 48px; position:relative; z-index:1; }
-  .tab-panel { display:none; }
-  .tab-panel.active { display:block; }
-
-  /* ── KPI GRID ── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 36px;
-  }
-  .kpi {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px 20px 20px;
-    position:relative; overflow:hidden;
-    transition: transform .2s, border-color .2s;
-  }
-  .kpi:hover { transform:translateY(-2px); border-color: rgba(255,255,255,0.14); }
-  .kpi::before {
-    content:'';
-    position:absolute; top:0; left:0; right:0; height:2px;
-    background: var(--kpi-color, var(--accent));
-  }
-  .kpi-label {
-    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:var(--text3); font-family:'DM Mono',monospace; margin-bottom:12px;
-  }
-  .kpi-value {
-    font-family:'Syne',sans-serif; font-size:30px; font-weight:700;
-    color:var(--text); line-height:1;
-  }
-  .kpi-value .unit { font-size:13px; font-weight:400; color:var(--text3); margin-left:4px; }
-  .kpi-sub { font-size:11px; color:var(--text3); margin-top:8px; }
-  .kpi-icon { position:absolute; top:20px; right:16px; font-size:22px; opacity:.15; }
-
-  /* ── SECTION TITLE ── */
-  .section-title {
-    font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
-    color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;
-  }
-  .section-title::after {
-    content:''; flex:1; height:1px; background:var(--border);
-  }
-
-  /* ── CATEGORY CARDS ── */
-  .cat-grid {
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
-    gap:16px; margin-bottom:36px;
-  }
-  .cat-card {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:20px; position:relative; overflow:hidden;
-  }
-  .cat-card .cat-name {
-    font-family:'Syne',sans-serif; font-size:12px; font-weight:700;
-    letter-spacing:.5px; color:var(--text2); text-transform:uppercase;
-    margin-bottom:16px;
-  }
-  .cat-meter { margin-bottom:12px; }
-  .cat-meter-label {
-    display:flex; justify-content:space-between; margin-bottom:6px;
-    font-size:11px; color:var(--text3);
-  }
-  .cat-meter-label span:last-child { font-family:'DM Mono',monospace; }
-  .bar-track {
-    height:6px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;
-  }
-  .bar-fill {
-    height:100%; border-radius:4px; transition: width .8s cubic-bezier(.4,0,.2,1);
-  }
-  .cat-stats {
-    display:grid; grid-template-columns:1fr 1fr 1fr;
-    gap:8px; margin-top:14px;
-    padding-top:14px; border-top:1px solid var(--border);
-  }
-  .cat-stat-val {
-    font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--text);
-  }
-  .cat-stat-lbl { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
-  .status-badge {
-    display:inline-flex; align-items:center; gap:5px;
-    padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;
-    letter-spacing:.5px; text-transform:uppercase;
-  }
-  .badge-ok { background:rgba(16,185,129,.15); color:#10b981; }
-  .badge-warn { background:rgba(239,68,68,.15); color:#ef4444; }
-
-  /* ── VOLUME BAR CHART ── */
-  .vol-chart {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:24px; margin-bottom:36px;
-  }
-  .vol-bars { display:flex; align-items:flex-end; gap:12px; height:160px; margin:20px 0 8px; }
-  .vol-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
-  .vol-bar-outer { width:100%; flex:1; display:flex; align-items:flex-end; }
-  .vol-bar-inner {
-    width:100%; border-radius:4px 4px 0 0; position:relative;
-    background: var(--accent2);
-    transition: height .6s ease;
-    min-height:4px;
-  }
-  .vol-bar-inner:hover::after {
-    content: attr(data-tip);
-    position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
-    background:#1e293b; color:var(--text); font-size:10px; padding:4px 8px;
-    border-radius:4px; white-space:nowrap; font-family:'DM Mono',monospace;
-    pointer-events:none; z-index:10;
-  }
-  .vol-bar-label { font-size:9px; color:var(--text3); text-align:center; letter-spacing:.3px; }
-  .vol-bar-val { font-family:'DM Mono',monospace; font-size:9px; color:var(--text2); }
-
-  /* ── FROTAS TABLE ── */
-  .table-controls {
-    display:flex; gap:12px; margin-bottom:16px; align-items:center; flex-wrap:wrap;
-  }
-  .search-box {
-    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
-    padding:10px 14px; color:var(--text); font:400 13px 'DM Sans',sans-serif;
-    outline:none; flex:1; min-width:200px;
-  }
-  .search-box::placeholder { color:var(--text3); }
-  .search-box:focus { border-color:var(--accent2); }
-  .filter-select {
-    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
-    padding:10px 14px; color:var(--text2); font:400 12px 'DM Sans',sans-serif;
-    outline:none; cursor:pointer; appearance:none;
-    padding-right:32px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position: right 10px center; background-size:12px;
-  }
-  .filter-select:focus { border-color:var(--accent2); }
-
-  .count-badge {
-    font-family:'DM Mono',monospace; font-size:11px; color:var(--text3);
-    background:var(--surface2); padding:6px 12px; border-radius:6px;
-    border:1px solid var(--border);
-  }
-
-  .frota-table { width:100%; border-collapse:collapse; }
-  .frota-table thead th {
-    padding:10px 12px; text-align:left;
-    font-size:9px; letter-spacing:1.2px; text-transform:uppercase;
-    color:var(--text3); font-family:'DM Mono',monospace;
-    border-bottom:1px solid var(--border);
-    cursor:pointer; user-select:none; white-space:nowrap;
-  }
-  .frota-table thead th:hover { color:var(--text2); }
-  .frota-table thead th .sort-icon { margin-left:4px; opacity:.4; }
-  .frota-table tbody tr {
-    border-bottom:1px solid rgba(255,255,255,0.04);
-    transition: background .15s;
-  }
-  .frota-table tbody tr:hover { background:rgba(255,255,255,0.03); }
-  .frota-table td {
-    padding:11px 12px; font-size:12px; color:var(--text2);
-    font-family:'DM Mono',monospace; white-space:nowrap;
-  }
-  .td-cat {
-    font-family:'DM Sans',sans-serif; font-size:11px;
-    color:var(--text3); letter-spacing:.3px;
-  }
-  .td-frota { color:var(--text); font-weight:500; }
-  .td-placa { color:var(--text3); font-size:11px; }
-  .td-media { font-weight:500; }
-
-  .pill {
-    display:inline-flex; align-items:center; gap:4px;
-    padding:3px 8px; border-radius:20px; font-size:9px; font-weight:600;
-    letter-spacing:.8px; text-transform:uppercase;
-  }
-  .pill-ok   { background:rgba(16,185,129,.12); color:#10b981; }
-  .pill-warn { background:rgba(239,68,68,.12);  color:#ef4444; }
-  .pill-crit { background:rgba(255,51,102,.18); color:#ff3366; animation: pulse-crit 2s infinite; }
-  .pill-gray { background:rgba(107,114,128,.1); color:#6b7280; }
-
-  @keyframes pulse-crit {
-    0%,100% { box-shadow:0 0 0 0 rgba(255,51,102,.3); }
-    50%      { box-shadow:0 0 0 4px rgba(255,51,102,0); }
-  }
-
-  .diff-pos { color:#10b981; }
-  .diff-neg { color:#ef4444; }
-  .diff-crit{ color:#ff3366; font-weight:700; }
-
-  .mini-bar-wrap { width:60px; }
-  .mini-bar-track { height:3px; background:rgba(255,255,255,.06); border-radius:2px; }
-  .mini-bar-fill  { height:100%; border-radius:2px; }
-
-  /* ── RANKING ── */
-  .ranking-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:36px; }
-  @media(max-width:900px){ .ranking-grid { grid-template-columns:1fr; } }
-
-  .rank-card {
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px;
-  }
-  .rank-card h3 { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:16px; }
-  .rank-item {
-    display:flex; align-items:center; gap:12px;
-    padding:10px 0; border-bottom:1px solid rgba(255,255,255,.04);
-  }
-  .rank-item:last-child { border-bottom:none; }
-  .rank-num {
-    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
-    color:var(--text3); width:28px; flex-shrink:0;
-  }
-  .rank-info { flex:1; min-width:0; }
-  .rank-frota { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--text); }
-  .rank-cat { font-size:10px; color:var(--text3); margin-top:2px; }
-  .rank-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
-
-  /* ── VOLUME CONTROL ── */
-  .vol-control {
-    background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:28px; margin-bottom:36px;
-  }
-  .vol-row {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:14px 0; border-bottom:1px solid rgba(255,255,255,.04);
-  }
-  .vol-row:last-child { border-bottom:none; }
-  .vol-row-label { font-size:13px; color:var(--text2); }
-  .vol-row-label small { display:block; font-size:10px; color:var(--text3); margin-top:2px; font-family:'DM Mono',monospace; }
-  .vol-row-val { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
-  .vol-section-title {
-    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:var(--accent); font-family:'DM Mono',monospace;
-    padding:16px 0 8px;
-  }
-  .vol-total { border-top:1px solid var(--border); margin-top:8px; padding-top:8px; }
-  .vol-total .vol-row-label { font-weight:600; color:var(--text); }
-  .vol-total .vol-row-val { font-size:28px; }
-
-  /* ── MODELO TABLE ── */
-  .modelo-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-  .modelo-table { width:100%; border-collapse:collapse; }
-  .modelo-table thead th {
-    padding:12px 16px; text-align:left;
-    font-size:9px; letter-spacing:1.2px; text-transform:uppercase;
-    color:var(--text3); font-family:'DM Mono',monospace;
-    background:var(--surface2); border-bottom:1px solid var(--border);
-  }
-  .modelo-table tbody tr { border-bottom:1px solid rgba(255,255,255,.04); transition:background .15s; }
-  .modelo-table tbody tr:hover { background:rgba(255,255,255,.02); }
-  .modelo-table td { padding:13px 16px; font-size:12px; color:var(--text2); font-family:'DM Mono',monospace; }
-  .modelo-table .td-mod { font-family:'DM Sans',sans-serif; color:var(--text); font-size:12px; }
-  .modelo-table .td-cat-lbl { font-size:10px; color:var(--text3); }
-  .gap-indicator {
-    display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    text-align:center; padding:24px 48px;
-    font-size:10px; color:var(--text3); font-family:'DM Mono',monospace;
-    border-top:1px solid var(--border); letter-spacing:.5px;
-  }
-
-  /* ── RESPONSIVE ── */
-  @media(max-width:768px){
-    header, main, nav, footer { padding-left:20px; padding-right:20px; }
-    .kpi-grid { grid-template-columns:1fr 1fr; }
-    .cat-grid { grid-template-columns:1fr; }
-  }
-  @media(max-width:480px){
-    .kpi-grid { grid-template-columns:1fr; }
-  }
-
-  /* Scroll */
-  ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
-
-  .table-scroll { overflow-x:auto; }
-
-  /* Animate in */
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(16px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  .kpi { animation: fadeUp .4s ease both; }
-  .kpi:nth-child(1){animation-delay:.05s}
-  .kpi:nth-child(2){animation-delay:.10s}
-  .kpi:nth-child(3){animation-delay:.15s}
-  .kpi:nth-child(4){animation-delay:.20s}
-  .kpi:nth-child(5){animation-delay:.25s}
-  .kpi:nth-child(6){animation-delay:.30s}
+:root{--or:#E8711A;--orL:#FFF0E6;--orM:#FDDCBF;--az:#2B3A8C;--bg:#F5F6FA;--sf:#fff;--bd:#E8EAEF;--tx:#1A1D2E;--t2:#4A5068;--t3:#9198B4;--ok:#16A34A;--okB:#DCFCE7;--wn:#DC2626;--wnB:#FEE2E2}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ico{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--or),var(--az));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px}
+.logo h1{font-size:16px;font-weight:700}.logo p{font-size:11px;color:var(--t3);margin-top:1px}
+.mbadge{background:var(--orL);color:var(--or);font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid var(--orM)}
+nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 40px;display:flex;overflow-x:auto}
+nav button{padding:13px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;font:500 13px 'Outfit',sans-serif;transition:all .2s;white-space:nowrap}
+nav button.active{color:var(--or);border-bottom-color:var(--or);font-weight:600}
+.msel{background:#fff;border-bottom:1px solid var(--bd);padding:10px 40px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.msel span{font-size:11px;color:var(--t3);font-weight:600;margin-right:2px}
+.mb{padding:5px 15px;border-radius:20px;border:1px solid var(--bd);background:#fff;color:var(--t2);font:500 12px 'Outfit',sans-serif;cursor:pointer;transition:all .15s}
+.mb.active{background:var(--or);color:#fff;border-color:var(--or)}
+main{padding:24px 40px}
+.tp{display:none}.tp.active{display:block}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:18px 16px;position:relative;overflow:hidden;transition:transform .2s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc,var(--or))}
+.kl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);font-weight:600;margin-bottom:8px}
+.kv{font-size:24px;font-weight:700;line-height:1}
+.kv .u{font-size:11px;font-weight:400;color:var(--t3);margin-left:2px}
+.ks{font-size:11px;color:var(--t3);margin-top:5px}
+.st{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.st::after{content:'';flex:1;height:1px;background:var(--bd)}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px}
+.cc{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px}
+.ct{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cn{font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.3px;text-transform:uppercase}
+.bok{background:var(--okB);color:var(--ok);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px}
+.bwn{background:var(--wnB);color:var(--wn);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px}
+.bl{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:4px}
+.bt{height:6px;background:var(--bd);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px}
+.cs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)}
+.cv{font-size:15px;font-weight:700;font-family:'DM Mono',monospace}
+.cl3{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-top:1px}
+.hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:24px}
+.hc{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:18px}
+.hc h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--t2);margin-bottom:14px}
+.hr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.hm{font-size:10px;font-weight:600;color:var(--t3);width:60px;flex-shrink:0}
+.hbw{flex:1}.hbt{height:7px;background:var(--bd);border-radius:4px;overflow:hidden}
+.hbf{height:100%;border-radius:4px}
+.hv{font-family:'DM Mono',monospace;font-size:11px;color:var(--tx);width:40px;text-align:right;flex-shrink:0}
+.tc{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.si{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;color:var(--tx);font:400 13px 'Outfit',sans-serif;outline:none;flex:1;min-width:160px}
+.si:focus{border-color:var(--or)}
+.fs{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:8px 28px 8px 10px;color:var(--t2);font:400 12px 'Outfit',sans-serif;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%239198B4' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:10px}
+.cnt{font-size:11px;color:var(--t3);background:#fff;border:1px solid var(--bd);padding:5px 10px;border-radius:6px}
+.tw{overflow-x:auto;background:#fff;border:1px solid var(--bd);border-radius:12px}
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 12px;text-align:left;background:#FAFBFD;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);font-weight:600;border-bottom:1px solid var(--bd);cursor:pointer;white-space:nowrap}
+thead th:hover{color:var(--or)}
+tbody tr{border-bottom:1px solid #F3F4F8;transition:background .1s}
+tbody tr:hover{background:#FAFBFD}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 12px;font-size:12px;color:var(--t2);white-space:nowrap}
+.tf2{font-weight:700;color:var(--tx);font-family:'DM Mono',monospace}
+.pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.p-ok{background:var(--okB);color:var(--ok)}
+.p-wn{background:var(--wnB);color:var(--wn)}
+.p-cr{background:#FEE2E2;color:#991B1B;animation:pu 2s infinite}
+.p-gy{background:#F3F4F6;color:var(--t3)}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.2)}50%{box-shadow:0 0 0 4px rgba(220,38,38,0)}}
+.dp2{color:var(--ok);font-weight:600;font-family:'DM Mono',monospace}
+.dn2{color:var(--wn);font-weight:600;font-family:'DM Mono',monospace}
+.dc2{color:#991B1B;font-weight:700;font-family:'DM Mono',monospace}
+.mb2{width:48px}.mbt2{height:3px;background:var(--bd);border-radius:2px}.mbf2{height:100%;border-radius:2px}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.rc{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:18px}
+.rc h3{font-size:12px;font-weight:700;margin-bottom:12px}
+.ri{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F8}
+.ri:last-child{border-bottom:none}
+.rn{font-size:16px;font-weight:800;color:var(--bd);width:24px;flex-shrink:0;font-family:'DM Mono',monospace}
+.rif{flex:1;min-width:0}
+.rf2{font-size:13px;font-weight:700}
+.rcat{font-size:10px;color:var(--t3);margin-top:1px}
+.rv{font-size:16px;font-weight:700;font-family:'DM Mono',monospace}
+.vc2{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:22px;margin-bottom:20px}
+.vsec{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--or);padding:12px 0 6px}
+.vr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F8}
+.vr:last-child{border-bottom:none}
+.vrl{font-size:13px;color:var(--t2)}
+.vrl small{display:block;font-size:10px;color:var(--t3);margin-top:1px;font-family:'DM Mono',monospace}
+.vrv{font-size:19px;font-weight:700;font-family:'DM Mono',monospace}
+.vtt{border-top:2px solid var(--bd);margin-top:4px}
+.vtt .vrl{font-weight:700;color:var(--tx)}
+.vtt .vrv{font-size:22px}
+.ht{width:100%;border-collapse:collapse}
+.ht th,.ht td{padding:9px 14px;font-size:11px}
+.ht th{text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);font-weight:600;border-bottom:1px solid var(--bd);background:#FAFBFD}
+.ht th:first-child{text-align:left}
+.ht td{text-align:right;font-family:'DM Mono',monospace;color:var(--t2);border-bottom:1px solid #F3F4F8}
+.ht td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-weight:600;color:var(--tx)}
+.ht tr:last-child td{border-bottom:none}
+.pv{color:var(--ok);font-weight:700}.nv{color:var(--wn);font-weight:700}
+footer{text-align:center;padding:18px 40px;font-size:10px;color:var(--t3);border-top:1px solid var(--bd);background:#fff;margin-top:16px;letter-spacing:.5px}
+@media(max-width:768px){header,main,nav,.msel,footer{padding-left:14px;padding-right:14px}.kg{grid-template-columns:1fr 1fr}.rg{grid-template-columns:1fr}.cg{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo-block">
-    <h1>Expresso <span>Unir</span></h1>
-    <p>Gestão de Combustível · Diesel S10</p>
+  <div class="logo">
+    <div class="logo-ico">EU</div>
+    <div><h1>Expresso Unir</h1><p>Gestão de Frota · Diesel S10</p></div>
   </div>
-  <div class="header-meta">
-    <strong>ABRIL 2025</strong>
-    Atualizado mensalmente
-  </div>
+  <div class="mbadge" id="hbadge">Abril 2026</div>
 </header>
-
 <nav>
-  <button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
-  <button onclick="showTab('frotas',this)">Frotas Detalhadas</button>
-  <button onclick="showTab('modelos',this)">Por Modelo</button>
-  <button onclick="showTab('volume',this)">Volume & Compra</button>
+  <button class="active" onclick="tab('dashboard',this)">Dashboard</button>
+  <button onclick="tab('historico',this)">Histórico</button>
+  <button onclick="tab('frotas',this)">Frotas</button>
+  <button onclick="tab('volume',this)">Volume & Compra</button>
 </nav>
-
+<div class="msel"><span>Mês:</span><div id="mbtns" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
 <main>
-
-<!-- ══════════════════════════════════════════════ -->
-<!-- TAB: DASHBOARD                                 -->
-<!-- ══════════════════════════════════════════════ -->
-<div class="tab-panel active" id="tab-dashboard">
-
-  <div class="kpi-grid">
-    <div class="kpi" style="--kpi-color:#f59e0b">
-      <div class="kpi-icon">⛽</div>
-      <div class="kpi-label">Volume Comprado</div>
-      <div class="kpi-value">175.000<span class="unit">L</span></div>
-      <div class="kpi-sub">Abastecimento no mês</div>
+  <div class="tp active" id="tab-dashboard">
+    <div class="kg" id="kpis"></div>
+    <div class="st">Desempenho por Categoria</div>
+    <div class="cg" id="cats"></div>
+  </div>
+  <div class="tp" id="tab-historico">
+    <div class="st">Evolução da Média — Jan a Abr 2026</div>
+    <div class="hg" id="hist"></div>
+    <div class="st">Volume por Categoria por Mês</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:24px"><table class="ht" id="hvol"></table></div>
+  </div>
+  <div class="tp" id="tab-frotas">
+    <div class="rg" id="rank"></div>
+    <div class="st">Todas as Frotas</div>
+    <div class="tc">
+      <input class="si" type="text" placeholder="Buscar frota ou placa..." id="si" oninput="ft()">
+      <select class="fs" id="fcat" onchange="ft()"><option value="">Todas as categorias</option></select>
+      <select class="fs" id="fst" onchange="ft()">
+        <option value="">Todos os status</option>
+        <option value="ok">✅ OK</option>
+        <option value="abaixo">🔴 Abaixo da meta</option>
+        <option value="critico">🚨 Crítico</option>
+        <option value="sem_dados">— Sem dados</option>
+      </select>
+      <div class="cnt" id="cnt">—</div>
     </div>
-    <div class="kpi" style="--kpi-color:#3b82f6">
-      <div class="kpi-icon">📊</div>
-      <div class="kpi-label">Total no Sistema</div>
-      <div class="kpi-value">187.316<span class="unit">L</span></div>
-      <div class="kpi-sub">Registrado no sistema</div>
-    </div>
-    <div class="kpi" style="--kpi-color:#10b981">
-      <div class="kpi-icon">🚌</div>
-      <div class="kpi-label">Frota Operacional</div>
-      <div class="kpi-value">186.894<span class="unit">L</span></div>
-      <div class="kpi-sub">Ônibus em linha</div>
-    </div>
-    <div class="kpi" style="--kpi-color:#8b5cf6">
-      <div class="kpi-icon">🔧</div>
-      <div class="kpi-label">Apoio + Particular</div>
-      <div class="kpi-value">422<span class="unit">L</span></div>
-      <div class="kpi-sub">Contabilizados no total</div>
-    </div>
-    <div class="kpi" style="--kpi-color:#ef4444">
-      <div class="kpi-icon">⚖️</div>
-      <div class="kpi-label">Diferença</div>
-      <div class="kpi-value" style="color:#ef4444">−12.316<span class="unit">L</span></div>
-      <div class="kpi-sub">Sistema registrou mais que a compra</div>
-    </div>
-    <div class="kpi" style="--kpi-color:#f59e0b">
-      <div class="kpi-icon">✅</div>
-      <div class="kpi-label">Frotas Ativas</div>
-      <div class="kpi-value">112<span class="unit" style="font-size:14px"> / 128</span></div>
-      <div class="kpi-sub">Abasteceram no mês</div>
+    <div class="tw"><table><thead><tr>
+      <th onclick="so('cat')">Categoria</th><th onclick="so('frota')">Frota</th><th>Placa</th>
+      <th onclick="so('dist')">Dist.(km)</th><th onclick="so('vol')">Vol.(L)</th>
+      <th onclick="so('meta')">Meta</th><th onclick="so('media')">Média</th>
+      <th onclick="so('dp')">Diff%</th><th>Barra</th><th>Status</th>
+    </tr></thead><tbody id="ftb"></tbody></table></div>
+  </div>
+  <div class="tp" id="tab-volume">
+    <div class="st">Controle do Mês Selecionado</div>
+    <div class="vc2" id="vctrl"></div>
+    <div class="st">Histórico Compra vs Sistema</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:20px"><table class="ht" id="hcmp"></table></div>
+    <div style="background:var(--orL);border:1px solid var(--orM);border-radius:10px;padding:16px;font-size:12px;color:#92400E;line-height:1.6">
+      ℹ️ Diferença negativa = sistema registrou mais do que a compra declarada. Pode indicar uso de estoque anterior ou divergência de datas entre nota fiscal e abastecimento.
     </div>
   </div>
-
-  <!-- VOLUME POR CATEGORIA -->
-  <div class="section-title">Volume por Categoria</div>
-  <div class="vol-chart">
-    <div class="vol-bars" id="vol-bars"></div>
-    <div style="display:flex;gap:12px;" id="vol-labels"></div>
-  </div>
-
-  <!-- CATEGORIAS -->
-  <div class="section-title">Desempenho por Categoria</div>
-  <div class="cat-grid" id="cat-grid"></div>
-
-</div>
-
-<!-- ══════════════════════════════════════════════ -->
-<!-- TAB: FROTAS                                    -->
-<!-- ══════════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-frotas">
-
-  <!-- RANKING TOPO -->
-  <div class="ranking-grid" id="ranking-grid"></div>
-
-  <div class="section-title">Todas as Frotas</div>
-  <div class="table-controls">
-    <input class="search-box" type="text" placeholder="Buscar frota ou placa..." id="search-input" oninput="filterTable()">
-    <select class="filter-select" id="cat-filter" onchange="filterTable()">
-      <option value="">Todas as categorias</option>
-    </select>
-    <select class="filter-select" id="status-filter" onchange="filterTable()">
-      <option value="">Todos os status</option>
-      <option value="ok">✅ OK</option>
-      <option value="abaixo">🔴 Abaixo</option>
-      <option value="critico">🚨 Crítico</option>
-      <option value="sem_dados">— Sem dados</option>
-    </select>
-    <div class="count-badge" id="count-badge">— frotas</div>
-  </div>
-  <div class="table-scroll">
-    <table class="frota-table">
-      <thead>
-        <tr>
-          <th onclick="sortTable('categoria')">Categoria <span class="sort-icon">↕</span></th>
-          <th onclick="sortTable('frota')">Frota <span class="sort-icon">↕</span></th>
-          <th>Placa</th>
-          <th onclick="sortTable('distancia')">Distância (km) <span class="sort-icon">↕</span></th>
-          <th onclick="sortTable('volume')">Volume (L) <span class="sort-icon">↕</span></th>
-          <th onclick="sortTable('meta')">Meta <span class="sort-icon">↕</span></th>
-          <th onclick="sortTable('media')">Média <span class="sort-icon">↕</span></th>
-          <th onclick="sortTable('diff_pct')">Diff % <span class="sort-icon">↕</span></th>
-          <th>Barra</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="frota-tbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════ -->
-<!-- TAB: MODELOS                                   -->
-<!-- ══════════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-modelos">
-  <div class="section-title">Médias por Modelo de Veículo</div>
-  <div class="modelo-table-wrap">
-    <table class="modelo-table">
-      <thead>
-        <tr>
-          <th>Categoria</th>
-          <th>Modelo</th>
-          <th>Frotas</th>
-          <th>Abast.</th>
-          <th>Volume (L)</th>
-          <th>Meta</th>
-          <th>Média</th>
-          <th>Melhor</th>
-          <th>Pior</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="modelo-tbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════ -->
-<!-- TAB: VOLUME & COMPRA                           -->
-<!-- ══════════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-volume">
-  <div class="section-title">Controle de Volume & Compra · Abril 2025</div>
-
-  <div class="vol-control">
-    <div class="vol-section-title">Entradas</div>
-    <div class="vol-row">
-      <div class="vol-row-label">Volume Comprado no Mês<small>Informado pela empresa</small></div>
-      <div class="vol-row-val" style="color:var(--accent)">175.000 L</div>
-    </div>
-
-    <div class="vol-section-title" style="margin-top:8px">Saídas — Sistema</div>
-    <div class="vol-row">
-      <div class="vol-row-label">Frota Operacional<small>128 ônibus em linha</small></div>
-      <div class="vol-row-val">186.894 L</div>
-    </div>
-    <div class="vol-row">
-      <div class="vol-row-label">Apoio<small>Veículos de suporte operacional</small></div>
-      <div class="vol-row-val">254 L</div>
-    </div>
-    <div class="vol-row">
-      <div class="vol-row-label">Particular<small>Veículos de uso pessoal</small></div>
-      <div class="vol-row-val">168 L</div>
-    </div>
-
-    <div class="vol-total">
-      <div class="vol-row">
-        <div class="vol-row-label" style="font-weight:600">Total Registrado no Sistema</div>
-        <div class="vol-row-val">187.316 L</div>
-      </div>
-    </div>
-
-    <div class="vol-section-title" style="margin-top:8px">Resultado</div>
-    <div class="vol-row">
-      <div class="vol-row-label">Diferença (Compra − Sistema)<small>Negativo indica que sistema registrou mais que a compra</small></div>
-      <div class="vol-row-val" style="color:#ef4444">−12.316 L</div>
-    </div>
-    <div class="vol-row">
-      <div class="vol-row-label">Aproveitamento<small>% do comprado registrado no sistema</small></div>
-      <div class="vol-row-val" style="color:#10b981">107,0%</div>
-    </div>
-  </div>
-
-  <div class="section-title">Observações</div>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;font-size:13px;color:var(--text2);line-height:1.7;">
-    <p>📌 <strong style="color:var(--text)">Diferença negativa de 12.316 L:</strong> o sistema registrou mais litros do que os 175.000 L comprados. Isso pode indicar:</p>
-    <ul style="margin:10px 0 0 20px;display:flex;flex-direction:column;gap:6px;color:var(--text3)">
-      <li>Abastecimentos realizados com estoque anterior não contabilizados neste mês</li>
-      <li>Divergência entre data de compra e data de abastecimento no sistema</li>
-      <li>Necessidade de cruzamento com nota fiscal da compra</li>
-    </ul>
-    <p style="margin-top:12px;color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">
-      💡 A partir dos próximos meses, com o histórico mensal, será possível identificar padrões e ajustar o controle.
-    </p>
-  </div>
-</div>
-
 </main>
-
-<footer>
-  EXPRESSO UNIR · DIESEL S10 · ABRIL 2025 · Dados extraídos do sistema de abastecimento
-</footer>
-
+<footer>EXPRESSO UNIR · GESTÃO DIESEL S10 · 2026 · Dados do sistema de abastecimento</footer>
 <script>
-// ── DATA ──
-const DATA = {"mes":"Abril 2025","empresa":"Expresso Unir","vol_comprado":175000,"vol_total":187316.39,"vol_op":186894.19,"vol_ap":422.2,"diferenca":-12316.39,"frotas_ativas":112,"total_frotas":128,"categorias":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":20518.96,"meta":1.45,"media":1.38,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":28043.67,"meta":3.25,"media":3.55,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":49500.97,"meta":3.25,"media":3.14,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":28,"volume":40371.79,"meta":2.73,"media":2.67,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":5457.29,"meta":2.55,"media":2.52,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":15,"volume":20547.46,"meta":3.16,"media":2.96,"ok":false},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":14,"volume":22454.05,"meta":2.9,"media":3.12,"ok":true}],"frotas":[{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14172","placa":"OXD3786","distancia":3665.0,"volume":2791.07,"meta":1.45,"media":1.31,"diff_pct":-9.7,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14173","placa":"OXD3809","distancia":886.0,"volume":694.0,"meta":1.45,"media":1.28,"diff_pct":-11.7,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14174","placa":"OXC9411","distancia":4608.0,"volume":3283.05,"meta":1.45,"media":1.4,"diff_pct":-3.4,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14175","placa":"OXC9430","distancia":728.0,"volume":528.0,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14176","placa":"OXC9437","distancia":5742.0,"volume":4077.18,"meta":1.45,"media":1.41,"diff_pct":-2.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14177","placa":"OXC0616","distancia":4199.0,"volume":3046.38,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14178","placa":"OXJ0497","distancia":3835.0,"volume":2577.01,"meta":1.45,"media":1.49,"diff_pct":2.8,"status":"ok"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14179","placa":"OXJ0501","distancia":4871.0,"volume":3522.27,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1519 METROPOLITANO","frota":"14288","placa":"SHD1G37","distancia":4506.0,"volume":1236.13,"meta":3.25,"media":3.65,"diff_pct":12.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","frota":"14323","placa":"TDW6G96","distancia":3468.0,"volume":969.12,"meta":3.6,"media":3.58,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","frota":"14324","placa":"TED1I00","distancia":6999.0,"volume":1818.51,"meta":3.6,"media":3.85,"diff_pct":6.9,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14325","placa":"TDX1B27","distancia":6935.0,"volume":2036.01,"meta":3.29,"media":3.41,"diff_pct":3.6,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14326","placa":"TDX1B22","distancia":2060.0,"volume":606.13,"meta":3.29,"media":3.4,"diff_pct":3.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14327","placa":"TDV7B21","distancia":9326.0,"volume":2698.78,"meta":3.29,"media":3.46,"diff_pct":5.2,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14328","placa":"TDV6C87","distancia":4514.0,"volume":1327.5,"meta":3.29,"media":3.4,"diff_pct":3.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14329","placa":"TED1I03","distancia":6482.0,"volume":1838.21,"meta":3.29,"media":3.53,"diff_pct":7.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14330","placa":"TED1I05","distancia":8100.0,"volume":2598.0,"meta":3.29,"media":3.12,"diff_pct":-5.2,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14331","placa":"TDZ4F92","distancia":7897.0,"volume":2198.68,"meta":3.29,"media":3.59,"diff_pct":9.1,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14332","placa":"TED1I02","distancia":7175.0,"volume":1935.08,"meta":3.29,"media":3.71,"diff_pct":12.8,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14333","placa":"TED1I06","distancia":3752.0,"volume":1052.06,"meta":3.29,"media":3.57,"diff_pct":8.5,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14334","placa":"TED1H95","distancia":5737.0,"volume":1631.04,"meta":3.29,"media":3.52,"diff_pct":7.0,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14335","placa":"TED1H98","distancia":8480.0,"volume":2233.8,"meta":3.29,"media":3.8,"diff_pct":15.5,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14336","placa":"TDZ4F96","distancia":7449.0,"volume":2046.43,"meta":3.29,"media":3.64,"diff_pct":10.6,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14337","placa":"TEG2G14","distancia":6502.0,"volume":1818.19,"meta":3.29,"media":3.58,"diff_pct":8.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","frota":"101","placa":"TDW6G82","distancia":3811.0,"volume":1106.0,"meta":3.45,"media":3.45,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","frota":"102","placa":"TDZ4F95","distancia":4332.0,"volume":1234.0,"meta":3.45,"media":3.51,"diff_pct":1.7,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14281","placa":"SHH0I65","distancia":5795.0,"volume":1860.0,"meta":3.04,"media":3.12,"diff_pct":2.6,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14282","placa":"SHH0I79","distancia":6258.0,"volume":1952.0,"meta":3.04,"media":3.21,"diff_pct":5.6,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14283","placa":"SHF5I15","distancia":7355.0,"volume":2423.01,"meta":3.04,"media":3.04,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14284","placa":"SHF4B23","distancia":7445.0,"volume":2376.0,"meta":3.04,"media":3.13,"diff_pct":3.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14285","placa":"SHE6C29","distancia":5770.0,"volume":1960.0,"meta":3.04,"media":2.94,"diff_pct":-3.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14286","placa":"SHF8G14","distancia":5170.0,"volume":1572.0,"meta":3.04,"media":3.29,"diff_pct":8.2,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14287","placa":"SHC5G71","distancia":4802.0,"volume":1510.02,"meta":3.25,"media":3.18,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14289","placa":"SHC9J99","distancia":5290.0,"volume":1640.0,"meta":3.25,"media":3.23,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14290","placa":"SHC9J95","distancia":4138.0,"volume":1296.0,"meta":3.25,"media":3.19,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14291","placa":"SHU3I27","distancia":5894.0,"volume":1782.0,"meta":3.25,"media":3.31,"diff_pct":1.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14292","placa":"SHO9C20","distancia":4110.0,"volume":1230.0,"meta":3.25,"media":3.34,"diff_pct":2.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14293","placa":"SHP7E71","distancia":4443.0,"volume":1404.0,"meta":3.25,"media":3.16,"diff_pct":-2.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14294","placa":"SHO6D74","distancia":4612.0,"volume":1420.99,"meta":3.25,"media":3.25,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14295","placa":"SHU3I25","distancia":6867.0,"volume":1996.0,"meta":3.25,"media":3.44,"diff_pct":5.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14296","placa":"SJG4G47","distancia":5069.0,"volume":1730.0,"meta":3.29,"media":2.93,"diff_pct":-10.9,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14297","placa":"SJG5H91","distancia":6350.0,"volume":2378.0,"meta":3.29,"media":2.67,"diff_pct":-18.8,"status":"critico"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14298","placa":"SYA9B60","distancia":5168.0,"volume":1701.01,"meta":3.29,"media":3.04,"diff_pct":-7.6,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14299","placa":"SYA9B55","distancia":3755.0,"volume":1253.9,"meta":3.29,"media":2.99,"diff_pct":-9.1,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14300","placa":"SJI9G46","distancia":3817.0,"volume":1326.0,"meta":3.29,"media":2.88,"diff_pct":-12.5,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14301","placa":"SYV3A28","distancia":5274.0,"volume":1658.0,"meta":3.29,"media":3.18,"diff_pct":-3.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14302","placa":"SYV2J42","distancia":4595.0,"volume":1516.0,"meta":3.29,"media":3.03,"diff_pct":-7.9,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14303","placa":"SYV2J74","distancia":4852.0,"volume":1538.0,"meta":3.29,"media":3.15,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14304","placa":"SYW1J71","distancia":7727.0,"volume":2492.02,"meta":3.29,"media":3.1,"diff_pct":-5.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14305","placa":"SYV2J13","distancia":5123.0,"volume":1670.0,"meta":3.29,"media":3.07,"diff_pct":-6.7,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14306","placa":"SYV3A51","distancia":5029.0,"volume":1676.0,"meta":3.29,"media":3.0,"diff_pct":-8.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14307","placa":"SYW1J67","distancia":4257.0,"volume":1430.0,"meta":3.29,"media":2.98,"diff_pct":-9.4,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14338","placa":"TED1H97","distancia":7652.0,"volume":2370.02,"meta":3.29,"media":3.23,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"221","placa":"KRR3241","distancia":4152.0,"volume":1570.09,"meta":2.78,"media":2.64,"diff_pct":-5.0,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"231","placa":"LSS2G08","distancia":4508.0,"volume":1661.88,"meta":2.78,"media":2.71,"diff_pct":-2.5,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"241","placa":"KRR3C30","distancia":3438.0,"volume":1249.05,"meta":2.78,"media":2.75,"diff_pct":-1.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"251","placa":"LSS2G14","distancia":5137.0,"volume":1891.9,"meta":2.78,"media":2.72,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"261","placa":"LSS2G06","distancia":4608.0,"volume":1733.16,"meta":2.78,"media":2.66,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"271","placa":"LSS2G07","distancia":4927.0,"volume":1747.81,"meta":2.78,"media":2.82,"diff_pct":1.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"281","placa":"LSQ6I50","distancia":5517.0,"volume":2211.16,"meta":2.78,"media":2.5,"diff_pct":-10.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"291","placa":"KYM6H37","distancia":4300.0,"volume":1659.07,"meta":2.78,"media":2.59,"diff_pct":-6.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"301","placa":"QUA6209","distancia":4852.0,"volume":1693.64,"meta":2.69,"media":2.86,"diff_pct":6.3,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"311","placa":"QUA6181","distancia":4625.0,"volume":1556.61,"meta":2.69,"media":2.97,"diff_pct":10.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"480","placa":"QQU1229","distancia":3463.0,"volume":1219.05,"meta":2.69,"media":2.84,"diff_pct":5.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"490","placa":"QQU1132","distancia":3545.0,"volume":1378.87,"meta":2.69,"media":2.57,"diff_pct":-4.5,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"500","placa":"QQU1082","distancia":4109.0,"volume":1489.12,"meta":2.69,"media":2.76,"diff_pct":2.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"510","placa":"QQU1199","distancia":4771.0,"volume":1536.13,"meta":2.69,"media":3.11,"diff_pct":15.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"710","placa":"HOE8920","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"720","placa":"HOE8882","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"730","placa":"HOE8885","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"740","placa":"HOE8916","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"771","placa":"HOE8905","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"801","placa":"HOE8893","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"821","placa":"HOE8873","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"831","placa":"HOE8910","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"841","placa":"PJR6597","distancia":0.0,"volume":0.0,"meta":2.78,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"851","placa":"PJR6517","distancia":0.0,"volume":0.0,"meta":2.78,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"861","placa":"PJR2926","distancia":2961.0,"volume":1111.41,"meta":2.78,"media":2.66,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"871","placa":"PJR5052","distancia":2998.0,"volume":1224.02,"meta":2.78,"media":2.45,"diff_pct":-11.9,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"881","placa":"PJR2205","distancia":3221.0,"volume":1235.07,"meta":2.78,"media":2.61,"diff_pct":-6.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"891","placa":"KRR3C08","distancia":6090.0,"volume":2231.5,"meta":2.78,"media":2.73,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"901","placa":"KRR3C23","distancia":3798.0,"volume":1485.88,"meta":2.78,"media":2.56,"diff_pct":-7.9,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"911","placa":"PXZ9261","distancia":2336.0,"volume":921.08,"meta":2.78,"media":2.54,"diff_pct":-8.6,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"921","placa":"PXZ9258","distancia":2432.0,"volume":1026.49,"meta":2.78,"media":2.37,"diff_pct":-14.7,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"931","placa":"PYB5923","distancia":3267.0,"volume":1171.71,"meta":2.78,"media":2.79,"diff_pct":0.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"941","placa":"PZJ5982","distancia":3887.0,"volume":1566.24,"meta":2.78,"media":2.48,"diff_pct":-10.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"951","placa":"LMJ4887","distancia":3647.0,"volume":1304.21,"meta":2.78,"media":2.8,"diff_pct":0.7,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"961","placa":"KRR3232","distancia":3954.0,"volume":1509.5,"meta":2.78,"media":2.62,"diff_pct":-5.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"971","placa":"LSS2624","distancia":3609.0,"volume":1351.05,"meta":2.78,"media":2.67,"diff_pct":-4.0,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"981","placa":"KRR3227","distancia":438.0,"volume":206.0,"meta":2.78,"media":2.13,"diff_pct":-23.4,"status":"critico"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"991","placa":"KYR9266","distancia":3946.0,"volume":1430.09,"meta":2.78,"media":2.76,"diff_pct":-0.7,"status":"abaixo"},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","frota":"14308","placa":"TCI8A52","distancia":7812.0,"volume":3066.17,"meta":2.55,"media":2.55,"diff_pct":0.0,"status":"ok"},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","frota":"14309","placa":"TCF9H75","distancia":5954.0,"volume":2391.12,"meta":2.55,"media":2.49,"diff_pct":-2.4,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"2710","placa":"GYS4157","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14193","placa":"PWG9280","distancia":2594.0,"volume":762.06,"meta":3.25,"media":3.4,"diff_pct":4.6,"status":"ok"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14197","placa":"PWG9274","distancia":686.0,"volume":274.02,"meta":3.25,"media":2.5,"diff_pct":-23.1,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14198","placa":"PWG9282","distancia":1272.0,"volume":399.01,"meta":3.25,"media":3.19,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14242","placa":"OQL8394","distancia":191.0,"volume":72.02,"meta":3.25,"media":2.65,"diff_pct":-18.5,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14247","placa":"HAQ0A78","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14258","placa":"HAP7829","distancia":525.0,"volume":169.01,"meta":3.16,"media":3.11,"diff_pct":-1.6,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14265","placa":"HAP6839","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14266","placa":"OQL8388","distancia":205.0,"volume":114.0,"meta":3.25,"media":1.8,"diff_pct":-44.6,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14268","placa":"HAP6597","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14269","placa":"HAQ2013","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14280","placa":"OQL8399","distancia":681.0,"volume":216.08,"meta":3.25,"media":3.15,"diff_pct":-3.1,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14315","placa":"TDW6G90","distancia":5572.0,"volume":1803.08,"meta":3.16,"media":3.09,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14316","placa":"TDW2H91","distancia":8115.0,"volume":2835.61,"meta":3.16,"media":2.86,"diff_pct":-9.5,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14317","placa":"TDV7B52","distancia":6947.0,"volume":2273.18,"meta":3.16,"media":3.06,"diff_pct":-3.2,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14318","placa":"TDV7B19","distancia":7560.0,"volume":2428.17,"meta":3.16,"media":3.11,"diff_pct":-1.6,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14319","placa":"TDV7B62","distancia":9002.0,"volume":2889.56,"meta":3.16,"media":3.12,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14320","placa":"TDV7A89","distancia":7173.0,"volume":2328.22,"meta":3.16,"media":3.08,"diff_pct":-2.5,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14321","placa":"TDV7B66","distancia":5945.0,"volume":1907.2,"meta":3.16,"media":3.12,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14322","placa":"TDV7B54","distancia":6512.0,"volume":2076.24,"meta":3.16,"media":3.14,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"811","placa":"HGJ6399","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","frota":"14188","placa":"HGJ6484","distancia":307.0,"volume":100.0,"meta":2.9,"media":3.07,"diff_pct":5.9,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14194","placa":"PWK8114","distancia":5788.0,"volume":1865.96,"meta":3.0,"media":3.1,"diff_pct":3.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14195","placa":"PWK8117","distancia":5361.0,"volume":1808.68,"meta":3.0,"media":2.96,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","frota":"14201","placa":"GSR6526","distancia":285.0,"volume":163.05,"meta":2.9,"media":1.75,"diff_pct":-39.7,"status":"critico"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14204","placa":"OQL8358","distancia":4723.0,"volume":1549.24,"meta":3.0,"media":3.05,"diff_pct":1.7,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14205","placa":"OQL8379","distancia":7845.0,"volume":2577.22,"meta":3.0,"media":3.04,"diff_pct":1.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14207","placa":"OQL8374","distancia":5069.0,"volume":1649.21,"meta":3.0,"media":3.07,"diff_pct":2.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14216","placa":"PYU4952","distancia":3944.0,"volume":1399.12,"meta":3.0,"media":2.82,"diff_pct":-6.0,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14217","placa":"PYU4945","distancia":4500.0,"volume":1545.18,"meta":3.0,"media":2.91,"diff_pct":-3.0,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14310","placa":"TDV7B27","distancia":7359.0,"volume":2028.2,"meta":3.58,"media":3.63,"diff_pct":1.4,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14311","placa":"TDV7B57","distancia":5957.0,"volume":1733.94,"meta":3.58,"media":3.44,"diff_pct":-3.9,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14312","placa":"TDW2H90","distancia":7801.0,"volume":2128.22,"meta":3.58,"media":3.67,"diff_pct":2.5,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14313","placa":"TDY2I30","distancia":7114.0,"volume":1995.86,"meta":3.58,"media":3.56,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14314","placa":"TDY2I43","distancia":6904.0,"volume":1910.17,"meta":3.58,"media":3.61,"diff_pct":0.8,"status":"ok"}],"modelos":[{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","qtd":8,"abastecidos":8,"volume":20518.96,"meta":1.45,"media":1.38,"melhor":1.49,"pior":1.28},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1519 METROPOLITANO","qtd":1,"abastecidos":1,"volume":1236.13,"meta":3.25,"media":3.65,"melhor":3.65,"pior":3.65},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","qtd":2,"abastecidos":2,"volume":2787.63,"meta":3.6,"media":3.71,"melhor":3.85,"pior":3.58},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","qtd":13,"abastecidos":13,"volume":24019.91,"meta":3.29,"media":3.52,"melhor":3.8,"pior":3.12},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","qtd":8,"abastecidos":8,"volume":12279.01,"meta":3.25,"media":3.26,"melhor":3.44,"pior":3.16},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","qtd":2,"abastecidos":2,"volume":2340.0,"meta":3.45,"media":3.48,"melhor":3.51,"pior":3.45},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","qtd":6,"abastecidos":6,"volume":12143.01,"meta":3.04,"media":3.12,"melhor":3.29,"pior":2.94},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","qtd":13,"abastecidos":13,"volume":22738.95,"meta":3.29,"media":3.02,"melhor":3.23,"pior":2.67},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","qtd":6,"abastecidos":6,"volume":8873.42,"meta":2.69,"media":2.85,"melhor":3.11,"pior":2.57},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","qtd":24,"abastecidos":22,"volume":31498.37,"meta":2.78,"media":2.62,"melhor":2.82,"pior":2.13},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","qtd":8,"abastecidos":0,"volume":0.0,"meta":2.73,"media":0,"melhor":0,"pior":0},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","qtd":2,"abastecidos":2,"volume":5457.29,"meta":2.55,"media":2.52,"melhor":2.55,"pior":2.49},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","qtd":6,"abastecidos":6,"volume":1837.19,"meta":3.25,"media":2.78,"melhor":3.4,"pior":1.8},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","qtd":6,"abastecidos":1,"volume":169.01,"meta":3.16,"media":3.11,"melhor":3.11,"pior":3.11},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","qtd":8,"abastecidos":8,"volume":18541.26,"meta":3.16,"media":3.07,"melhor":3.14,"pior":2.86},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","qtd":2,"abastecidos":2,"volume":263.05,"meta":2.9,"media":2.41,"melhor":3.07,"pior":1.75},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","qtd":7,"abastecidos":7,"volume":12394.61,"meta":3.0,"media":2.99,"melhor":3.1,"pior":2.82},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1722 EURO III MUNICIPAL","qtd":1,"abastecidos":0,"volume":0.0,"meta":2.73,"media":0,"melhor":0,"pior":0},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","qtd":5,"abastecidos":5,"volume":9796.39,"meta":3.58,"media":3.58,"melhor":3.67,"pior":3.44}]};
+const D=[{"mes":"Janeiro","vc":200000,"vt":190973.5,"vo":190686.2,"va":287.3,"dif":9026.5,"fa":109,"tf":128,"cats":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":21542.9,"meta":1.45,"media":1.39,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":28996.7,"meta":3.25,"media":3.57,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":48655.6,"meta":3.25,"media":3.15,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":28,"volume":43101.8,"meta":2.73,"media":2.59,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":5149.5,"meta":2.55,"media":2.54,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":12,"volume":20734.4,"meta":3.16,"media":3.15,"ok":false},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":14,"volume":22505.3,"meta":2.9,"media":3.02,"ok":true}],"frotas":[{"cat":"ARTICULADO","frota":"14172","placa":"OXD3786","dist":4634.0,"vol":3436.5,"meta":1.45,"media":1.35,"dp":-6.9,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14173","placa":"OXD3809","dist":4250.0,"vol":2909.3,"meta":1.45,"media":1.46,"dp":0.7,"st":"ok"},{"cat":"ARTICULADO","frota":"14174","placa":"OXC9411","dist":3550.0,"vol":2437.2,"meta":1.45,"media":1.46,"dp":0.7,"st":"ok"},{"cat":"ARTICULADO","frota":"14175","placa":"OXC9430","dist":3469.0,"vol":2999.6,"meta":1.45,"media":1.16,"dp":-20.0,"st":"critico"},{"cat":"ARTICULADO","frota":"14176","placa":"OXC9437","dist":3969.0,"vol":2913.2,"meta":1.45,"media":1.36,"dp":-6.2,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14177","placa":"OXC0616","dist":3374.0,"vol":2282.0,"meta":1.45,"media":1.48,"dp":2.1,"st":"ok"},{"cat":"ARTICULADO","frota":"14178","placa":"OXJ0497","dist":1937.0,"vol":1334.0,"meta":1.45,"media":1.45,"dp":0.0,"st":"ok"},{"cat":"ARTICULADO","frota":"14179","placa":"OXJ0501","dist":4385.0,"vol":3231.2,"meta":1.45,"media":1.36,"dp":-6.2,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14288","placa":"SHD1G37","dist":2964.0,"vol":848.2,"meta":3.25,"media":3.49,"dp":7.4,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14323","placa":"TDW6G96","dist":2758.0,"vol":797.7,"meta":3.6,"media":3.46,"dp":-3.9,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14324","placa":"TED1I00","dist":3244.0,"vol":860.4,"meta":3.6,"media":3.77,"dp":4.7,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14325","placa":"TDX1B27","dist":8881.0,"vol":2635.4,"meta":3.29,"media":3.37,"dp":2.4,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14326","placa":"TDX1B22","dist":8070.0,"vol":2405.5,"meta":3.29,"media":3.35,"dp":1.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14327","placa":"TDV7B21","dist":7752.0,"vol":2144.2,"meta":3.29,"media":3.62,"dp":10.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14328","placa":"TDV6C87","dist":4315.0,"vol":1237.4,"meta":3.29,"media":3.49,"dp":6.1,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14329","placa":"TED1I03","dist":6341.0,"vol":1683.8,"meta":3.29,"media":3.77,"dp":14.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14330","placa":"TED1I05","dist":6415.0,"vol":2074.0,"meta":3.29,"media":3.09,"dp":-6.1,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14331","placa":"TDZ4F92","dist":9520.0,"vol":2655.6,"meta":3.29,"media":3.58,"dp":8.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14332","placa":"TED1I02","dist":8688.0,"vol":2314.5,"meta":3.29,"media":3.75,"dp":14.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14333","placa":"TED1I06","dist":6897.0,"vol":1914.3,"meta":3.29,"media":3.6,"dp":9.4,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14334","placa":"TED1H95","dist":6009.0,"vol":1626.7,"meta":3.29,"media":3.69,"dp":12.2,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14335","placa":"TED1H98","dist":6673.0,"vol":1774.1,"meta":3.29,"media":3.76,"dp":14.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14336","placa":"TDZ4F96","dist":5133.0,"vol":1478.0,"meta":3.29,"media":3.47,"dp":5.5,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14337","placa":"TEG2G14","dist":9964.0,"vol":2546.8,"meta":3.29,"media":3.91,"dp":18.8,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"101","placa":"TDW6G82","dist":3936.0,"vol":1136.0,"meta":3.45,"media":3.46,"dp":0.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"102","placa":"TDZ4F95","dist":4365.0,"vol":1280.0,"meta":3.45,"media":3.41,"dp":-1.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14281","placa":"SHH0I65","dist":6311.0,"vol":1947.0,"meta":3.04,"media":3.24,"dp":6.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14282","placa":"SHH0I79","dist":8186.0,"vol":2611.0,"meta":3.04,"media":3.14,"dp":3.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14283","placa":"SHF5I15","dist":6542.0,"vol":2190.0,"meta":3.04,"media":2.99,"dp":-1.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14284","placa":"SHF4B23","dist":6476.0,"vol":2128.0,"meta":3.04,"media":3.04,"dp":0.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14285","placa":"SHE6C29","dist":7088.0,"vol":2202.0,"meta":3.04,"media":3.22,"dp":5.9,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14286","placa":"SHF8G14","dist":2768.0,"vol":890.0,"meta":3.04,"media":3.11,"dp":2.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14287","placa":"SHC5G71","dist":3762.0,"vol":1190.0,"meta":3.25,"media":3.16,"dp":-2.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14289","placa":"SHC9J99","dist":6114.0,"vol":1838.0,"meta":3.25,"media":3.33,"dp":2.5,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14290","placa":"SHC9J95","dist":4443.0,"vol":1307.0,"meta":3.25,"media":3.4,"dp":4.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14291","placa":"SHU3I27","dist":5170.0,"vol":1651.0,"meta":3.25,"media":3.13,"dp":-3.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14292","placa":"SHO9C20","dist":3408.0,"vol":1008.0,"meta":3.25,"media":3.38,"dp":4.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14293","placa":"SHP7E71","dist":6297.0,"vol":1955.0,"meta":3.25,"media":3.22,"dp":-0.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14294","placa":"SHO6D74","dist":8171.0,"vol":2542.0,"meta":3.25,"media":3.21,"dp":-1.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14295","placa":"SHU3I25","dist":6537.0,"vol":1916.0,"meta":3.25,"media":3.41,"dp":4.9,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14296","placa":"SJG4G47","dist":3109.0,"vol":1030.0,"meta":3.29,"media":3.02,"dp":-8.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14297","placa":"SJG5H91","dist":6840.0,"vol":2244.0,"meta":3.29,"media":3.05,"dp":-7.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14298","placa":"SYA9B60","dist":5604.0,"vol":1852.0,"meta":3.29,"media":3.03,"dp":-7.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14299","placa":"SYA9B55","dist":3024.0,"vol":1044.0,"meta":3.29,"media":2.9,"dp":-11.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14300","placa":"SJI9G46","dist":3868.0,"vol":1289.0,"meta":3.29,"media":3.0,"dp":-8.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14301","placa":"SYV3A28","dist":7022.0,"vol":2234.0,"meta":3.29,"media":3.14,"dp":-4.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14302","placa":"SYV2J42","dist":4816.0,"vol":1539.1,"meta":3.29,"media":3.13,"dp":-4.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14303","placa":"SYV2J74","dist":7219.0,"vol":2340.0,"meta":3.29,"media":3.09,"dp":-6.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14304","placa":"SYW1J71","dist":6986.0,"vol":2202.0,"meta":3.29,"media":3.17,"dp":-3.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14305","placa":"SYV2J13","dist":2803.0,"vol":980.0,"meta":3.29,"media":2.86,"dp":-13.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14306","placa":"SYV3A51","dist":4468.0,"vol":1464.0,"meta":3.29,"media":3.05,"dp":-7.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14307","placa":"SYW1J67","dist":3356.0,"vol":1130.5,"meta":3.29,"media":2.97,"dp":-9.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14338","placa":"TED1H97","dist":4885.0,"vol":1516.0,"meta":3.29,"media":3.22,"dp":-2.1,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"221","placa":"KRR3241","dist":3786.0,"vol":1570.8,"meta":2.78,"media":2.41,"dp":-13.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"231","placa":"LSS2G08","dist":5310.0,"vol":2104.6,"meta":2.78,"media":2.52,"dp":-9.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"241","placa":"KRR3C30","dist":5653.0,"vol":2127.6,"meta":2.78,"media":2.66,"dp":-4.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"251","placa":"LSS2G14","dist":4574.0,"vol":1720.1,"meta":2.78,"media":2.66,"dp":-4.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"261","placa":"LSS2G06","dist":6013.0,"vol":2265.4,"meta":2.78,"media":2.65,"dp":-4.7,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"271","placa":"LSS2G07","dist":4391.0,"vol":1642.6,"meta":2.78,"media":2.67,"dp":-4.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"281","placa":"LSQ6I50","dist":4828.0,"vol":1945.8,"meta":2.78,"media":2.48,"dp":-10.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"291","placa":"KYM6H37","dist":5498.0,"vol":2081.4,"meta":2.78,"media":2.64,"dp":-5.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"301","placa":"QUA6209","dist":5270.0,"vol":1803.5,"meta":2.69,"media":2.92,"dp":8.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"311","placa":"QUA6181","dist":2460.0,"vol":937.3,"meta":2.69,"media":2.62,"dp":-2.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"480","placa":"QQU1229","dist":3162.0,"vol":1166.8,"meta":2.69,"media":2.71,"dp":0.7,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"490","placa":"QQU1132","dist":3589.0,"vol":1307.2,"meta":2.69,"media":2.75,"dp":2.2,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"500","placa":"QQU1082","dist":2938.0,"vol":901.0,"meta":2.69,"media":3.26,"dp":21.2,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"510","placa":"QQU1199","dist":3153.0,"vol":1043.9,"meta":2.69,"media":3.02,"dp":12.3,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"710","placa":"HOE8920","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"720","placa":"HOE8882","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"730","placa":"HOE8885","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"740","placa":"HOE8916","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"771","placa":"HOE8905","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"801","placa":"HOE8893","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"821","placa":"HOE8873","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"831","placa":"HOE8910","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"841","placa":"PJR6597","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"851","placa":"PJR6517","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"861","placa":"PJR2926","dist":836.0,"vol":337.1,"meta":2.78,"media":2.48,"dp":-10.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"871","placa":"PJR5052","dist":3467.0,"vol":1438.0,"meta":2.78,"media":2.41,"dp":-13.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"881","placa":"PJR2205","dist":3572.0,"vol":1360.1,"meta":2.78,"media":2.63,"dp":-5.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"891","placa":"KRR3C08","dist":124.0,"vol":73.0,"meta":2.78,"media":1.7,"dp":-38.8,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"901","placa":"KRR3C23","dist":4477.0,"vol":1755.1,"meta":2.78,"media":2.55,"dp":-8.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"911","placa":"PXZ9261","dist":4512.0,"vol":1794.5,"meta":2.78,"media":2.51,"dp":-9.7,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"921","placa":"PXZ9258","dist":4998.0,"vol":2032.2,"meta":2.78,"media":2.46,"dp":-11.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"931","placa":"PYB5923","dist":5033.0,"vol":2051.2,"meta":2.78,"media":2.45,"dp":-11.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"941","placa":"PZJ5982","dist":2754.0,"vol":1135.1,"meta":2.78,"media":2.43,"dp":-12.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"951","placa":"LMJ4887","dist":3929.0,"vol":1446.1,"meta":2.78,"media":2.72,"dp":-2.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"961","placa":"KRR3232","dist":4253.0,"vol":1651.2,"meta":2.78,"media":2.58,"dp":-7.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"971","placa":"LSS2624","dist":5572.0,"vol":2143.4,"meta":2.78,"media":2.6,"dp":-6.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"981","placa":"KRR3227","dist":5036.0,"vol":1941.3,"meta":2.78,"media":2.59,"dp":-6.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"991","placa":"KYR9266","dist":3389.0,"vol":1325.3,"meta":2.78,"media":2.56,"dp":-7.9,"st":"abaixo"},{"cat":"PADRON","frota":"14308","placa":"TCI8A52","dist":6236.0,"vol":2423.2,"meta":2.55,"media":2.57,"dp":0.8,"st":"ok"},{"cat":"PADRON","frota":"14309","placa":"TCF9H75","dist":6830.0,"vol":2726.3,"meta":2.55,"media":2.51,"dp":-1.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"2710","placa":"GYS4157","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14193","placa":"PWG9280","dist":3486.0,"vol":1049.1,"meta":3.25,"media":3.32,"dp":2.2,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14197","placa":"PWG9274","dist":1465.0,"vol":485.0,"meta":3.25,"media":3.02,"dp":-7.1,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14198","placa":"PWG9282","dist":2063.0,"vol":610.0,"meta":3.25,"media":3.38,"dp":4.0,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14242","placa":"OQL8394","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14247","placa":"HAQ0A78","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14258","placa":"HAP7829","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14265","placa":"HAP6839","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14266","placa":"OQL8388","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14268","placa":"HAP6597","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14269","placa":"HAQ2013","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14280","placa":"OQL8399","dist":3384.0,"vol":999.1,"meta":3.25,"media":3.39,"dp":4.3,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14315","placa":"TDW6G90","dist":6928.0,"vol":2353.5,"meta":3.16,"media":2.94,"dp":-7.0,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14316","placa":"TDW2H91","dist":6421.0,"vol":2159.4,"meta":3.16,"media":2.97,"dp":-6.0,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14317","placa":"TDV7B52","dist":6989.0,"vol":2183.3,"meta":3.16,"media":3.2,"dp":1.3,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14318","placa":"TDV7B19","dist":7728.0,"vol":2415.7,"meta":3.16,"media":3.2,"dp":1.3,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14319","placa":"TDV7B62","dist":6661.0,"vol":2206.3,"meta":3.16,"media":3.02,"dp":-4.4,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14320","placa":"TDV7A89","dist":5616.0,"vol":1822.3,"meta":3.16,"media":3.08,"dp":-2.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14321","placa":"TDV7B66","dist":8818.0,"vol":2730.3,"meta":3.16,"media":3.23,"dp":2.2,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14322","placa":"TDV7B54","dist":5358.0,"vol":1720.3,"meta":3.16,"media":3.11,"dp":-1.6,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"811","placa":"HGJ6399","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14188","placa":"HGJ6484","dist":183.0,"vol":109.0,"meta":2.9,"media":1.68,"dp":-42.1,"st":"critico"},{"cat":"ROD. EXECUTIVO","frota":"14194","placa":"PWK8114","dist":4853.0,"vol":1683.1,"meta":3.0,"media":2.88,"dp":-4.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14195","placa":"PWK8117","dist":5855.0,"vol":1911.9,"meta":3.0,"media":3.06,"dp":2.0,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14201","placa":"GSR6526","dist":239.0,"vol":165.0,"meta":2.9,"media":1.45,"dp":-50.0,"st":"critico"},{"cat":"ROD. EXECUTIVO","frota":"14204","placa":"OQL8358","dist":6190.0,"vol":1970.6,"meta":3.0,"media":3.14,"dp":4.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14205","placa":"OQL8379","dist":6260.0,"vol":2030.6,"meta":3.0,"media":3.08,"dp":2.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14207","placa":"OQL8374","dist":5490.0,"vol":1834.8,"meta":3.0,"media":2.99,"dp":-0.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14216","placa":"PYU4952","dist":5380.0,"vol":1886.3,"meta":3.0,"media":2.85,"dp":-5.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14217","placa":"PYU4945","dist":4813.0,"vol":1588.1,"meta":3.0,"media":3.03,"dp":1.0,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14310","placa":"TDV7B27","dist":4578.0,"vol":1279.1,"meta":3.58,"media":3.58,"dp":0.0,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14311","placa":"TDV7B57","dist":6274.0,"vol":1783.5,"meta":3.58,"media":3.52,"dp":-1.7,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14312","placa":"TDW2H90","dist":6015.0,"vol":1654.3,"meta":3.58,"media":3.64,"dp":1.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14313","placa":"TDY2I30","dist":7914.0,"vol":2176.5,"meta":3.58,"media":3.64,"dp":1.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14314","placa":"TDY2I43","dist":8935.0,"vol":2432.5,"meta":3.58,"media":3.67,"dp":2.5,"st":"ok"}]},{"mes":"Fevereiro","vc":170000,"vt":178012.1,"vo":177692.9,"va":302.1,"dif":-8012.1,"fa":111,"tf":128,"cats":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":19167.5,"meta":1.45,"media":1.39,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":26267.9,"meta":3.25,"media":3.57,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":48141.5,"meta":3.25,"media":3.08,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":29,"volume":39849.8,"meta":2.73,"media":2.65,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":4830.6,"meta":2.55,"media":2.48,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":13,"volume":18972.4,"meta":3.16,"media":3.15,"ok":false},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":14,"volume":20463.1,"meta":2.9,"media":2.99,"ok":true}],"frotas":[{"cat":"ARTICULADO","frota":"14172","placa":"OXD3786","dist":3284.0,"vol":2481.1,"meta":1.45,"media":1.32,"dp":-9.0,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14173","placa":"OXD3809","dist":3933.0,"vol":2679.1,"meta":1.45,"media":1.47,"dp":1.4,"st":"ok"},{"cat":"ARTICULADO","frota":"14174","placa":"OXC9411","dist":2217.0,"vol":1644.0,"meta":1.45,"media":1.35,"dp":-6.9,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14175","placa":"OXC9430","dist":3062.0,"vol":2108.1,"meta":1.45,"media":1.45,"dp":0.0,"st":"ok"},{"cat":"ARTICULADO","frota":"14176","placa":"OXC9437","dist":4110.0,"vol":2972.2,"meta":1.45,"media":1.38,"dp":-4.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14177","placa":"OXC0616","dist":5249.0,"vol":3637.4,"meta":1.45,"media":1.44,"dp":-0.7,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14178","placa":"OXJ0497","dist":2202.0,"vol":1517.2,"meta":1.45,"media":1.45,"dp":0.0,"st":"ok"},{"cat":"ARTICULADO","frota":"14179","placa":"OXJ0501","dist":2728.0,"vol":2128.4,"meta":1.45,"media":1.28,"dp":-11.7,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14288","placa":"SHD1G37","dist":5237.0,"vol":1385.0,"meta":3.25,"media":3.78,"dp":16.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14323","placa":"TDW6G96","dist":4624.0,"vol":1284.6,"meta":3.6,"media":3.6,"dp":0.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14324","placa":"TED1I00","dist":3874.0,"vol":1082.1,"meta":3.6,"media":3.58,"dp":-0.6,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14325","placa":"TDX1B27","dist":7419.0,"vol":2233.2,"meta":3.29,"media":3.32,"dp":0.9,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14326","placa":"TDX1B22","dist":6926.0,"vol":2069.2,"meta":3.29,"media":3.35,"dp":1.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14327","placa":"TDV7B21","dist":7978.0,"vol":2201.8,"meta":3.29,"media":3.62,"dp":10.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14328","placa":"TDV6C87","dist":5772.0,"vol":1641.8,"meta":3.29,"media":3.52,"dp":7.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14329","placa":"TED1I03","dist":4513.0,"vol":1239.0,"meta":3.29,"media":3.64,"dp":10.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14330","placa":"TED1I05","dist":5513.0,"vol":1730.0,"meta":3.29,"media":3.19,"dp":-3.0,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14331","placa":"TDZ4F92","dist":6628.0,"vol":1868.4,"meta":3.29,"media":3.55,"dp":7.9,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14332","placa":"TED1I02","dist":7407.0,"vol":1944.9,"meta":3.29,"media":3.81,"dp":15.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14333","placa":"TED1I06","dist":4480.0,"vol":1230.6,"meta":3.29,"media":3.64,"dp":10.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14334","placa":"TED1H95","dist":3230.0,"vol":916.9,"meta":3.29,"media":3.52,"dp":7.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14335","placa":"TED1H98","dist":5913.0,"vol":1643.1,"meta":3.29,"media":3.6,"dp":9.4,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14336","placa":"TDZ4F96","dist":6660.0,"vol":1816.8,"meta":3.29,"media":3.67,"dp":11.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14337","placa":"TEG2G14","dist":7257.0,"vol":1980.5,"meta":3.29,"media":3.66,"dp":11.2,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"101","placa":"TDW6G82","dist":3421.0,"vol":1038.0,"meta":3.45,"media":3.3,"dp":-4.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"102","placa":"TDZ4F95","dist":4182.0,"vol":1186.0,"meta":3.45,"media":3.53,"dp":2.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14281","placa":"SHH0I65","dist":7424.0,"vol":2558.0,"meta":3.04,"media":2.9,"dp":-4.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14282","placa":"SHH0I79","dist":6805.0,"vol":2120.0,"meta":3.04,"media":3.21,"dp":5.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14283","placa":"SHF5I15","dist":6692.0,"vol":2244.0,"meta":3.04,"media":2.98,"dp":-2.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14284","placa":"SHF4B23","dist":6521.0,"vol":2138.0,"meta":3.04,"media":3.05,"dp":0.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14285","placa":"SHE6C29","dist":5529.0,"vol":1934.0,"meta":3.04,"media":2.86,"dp":-5.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14286","placa":"SHF8G14","dist":3074.0,"vol":1058.0,"meta":3.04,"media":2.91,"dp":-4.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14287","placa":"SHC5G71","dist":5540.0,"vol":1622.0,"meta":3.25,"media":3.42,"dp":5.2,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14289","placa":"SHC9J99","dist":4159.0,"vol":1326.0,"meta":3.25,"media":3.14,"dp":-3.4,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14290","placa":"SHC9J95","dist":4271.0,"vol":1350.0,"meta":3.25,"media":3.16,"dp":-2.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14291","placa":"SHU3I27","dist":4436.0,"vol":1424.0,"meta":3.25,"media":3.12,"dp":-4.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14292","placa":"SHO9C20","dist":3611.0,"vol":1130.0,"meta":3.25,"media":3.2,"dp":-1.5,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14293","placa":"SHP7E71","dist":4822.0,"vol":1556.4,"meta":3.25,"media":3.1,"dp":-4.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14294","placa":"SHO6D74","dist":4897.0,"vol":1510.0,"meta":3.25,"media":3.24,"dp":-0.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14295","placa":"SHU3I25","dist":2837.0,"vol":846.0,"meta":3.25,"media":3.35,"dp":3.1,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14296","placa":"SJG4G47","dist":7227.0,"vol":2462.0,"meta":3.29,"media":2.94,"dp":-10.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14297","placa":"SJG5H91","dist":4982.0,"vol":1828.0,"meta":3.29,"media":2.73,"dp":-17.0,"st":"critico"},{"cat":"METROPOLITANO SJL","frota":"14298","placa":"SYA9B60","dist":5437.0,"vol":1898.0,"meta":3.29,"media":2.86,"dp":-13.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14299","placa":"SYA9B55","dist":4132.0,"vol":1344.0,"meta":3.29,"media":3.07,"dp":-6.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14300","placa":"SJI9G46","dist":5220.0,"vol":1709.0,"meta":3.29,"media":3.05,"dp":-7.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14301","placa":"SYV3A28","dist":3591.0,"vol":1244.0,"meta":3.29,"media":2.89,"dp":-12.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14302","placa":"SYV2J42","dist":4013.0,"vol":1410.0,"meta":3.29,"media":2.85,"dp":-13.4,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14303","placa":"SYV2J74","dist":4051.0,"vol":1360.0,"meta":3.29,"media":2.98,"dp":-9.4,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14304","placa":"SYW1J71","dist":5005.0,"vol":1736.0,"meta":3.29,"media":2.88,"dp":-12.5,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14305","placa":"SYV2J13","dist":5836.0,"vol":1912.0,"meta":3.29,"media":3.05,"dp":-7.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14306","placa":"SYV3A51","dist":5555.0,"vol":1840.0,"meta":3.29,"media":3.02,"dp":-8.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14307","placa":"SYW1J67","dist":6772.0,"vol":2164.0,"meta":3.29,"media":3.13,"dp":-4.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14338","placa":"TED1H97","dist":7239.0,"vol":2194.0,"meta":3.29,"media":3.3,"dp":0.3,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"221","placa":"KRR3241","dist":993.0,"vol":407.0,"meta":2.78,"media":2.44,"dp":-12.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"231","placa":"LSS2G08","dist":5300.0,"vol":2065.2,"meta":2.78,"media":2.57,"dp":-7.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"241","placa":"KRR3C30","dist":5348.0,"vol":1927.6,"meta":2.78,"media":2.77,"dp":-0.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"251","placa":"LSS2G14","dist":3827.0,"vol":1461.7,"meta":2.78,"media":2.62,"dp":-5.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"261","placa":"LSS2G06","dist":4789.0,"vol":1850.0,"meta":2.78,"media":2.59,"dp":-6.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"271","placa":"LSS2G07","dist":4428.0,"vol":1681.3,"meta":2.78,"media":2.63,"dp":-5.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"281","placa":"LSQ6I50","dist":8208.0,"vol":1498.8,"meta":2.78,"media":5.48,"dp":97.1,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"291","placa":"KYM6H37","dist":3428.0,"vol":1354.5,"meta":2.78,"media":2.53,"dp":-9.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"301","placa":"QUA6209","dist":4787.0,"vol":1636.0,"meta":2.69,"media":2.93,"dp":8.9,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"311","placa":"QUA6181","dist":4862.0,"vol":1685.2,"meta":2.69,"media":2.89,"dp":7.4,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"480","placa":"QQU1229","dist":3553.0,"vol":1362.6,"meta":2.69,"media":2.61,"dp":-3.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"490","placa":"QQU1132","dist":3439.0,"vol":1311.2,"meta":2.69,"media":2.62,"dp":-2.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"500","placa":"QQU1082","dist":1508.0,"vol":632.0,"meta":2.69,"media":2.39,"dp":-11.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"510","placa":"QQU1199","dist":2795.0,"vol":959.0,"meta":2.69,"media":2.91,"dp":8.2,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"710","placa":"HOE8920","dist":163.0,"vol":111.8,"meta":2.73,"media":1.46,"dp":-46.5,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"720","placa":"HOE8882","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"730","placa":"HOE8885","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"740","placa":"HOE8916","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"771","placa":"HOE8905","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"801","placa":"HOE8893","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"821","placa":"HOE8873","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"831","placa":"HOE8910","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"841","placa":"PJR6597","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"851","placa":"PJR6517","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"861","placa":"PJR2926","dist":3289.0,"vol":1325.1,"meta":2.78,"media":2.48,"dp":-10.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"871","placa":"PJR5052","dist":3322.0,"vol":1353.3,"meta":2.78,"media":2.45,"dp":-11.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"881","placa":"PJR2205","dist":329.0,"vol":140.0,"meta":2.78,"media":2.35,"dp":-15.5,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"891","placa":"KRR3C08","dist":3917.0,"vol":1482.5,"meta":2.78,"media":2.64,"dp":-5.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"901","placa":"KRR3C23","dist":5234.0,"vol":1981.9,"meta":2.78,"media":2.64,"dp":-5.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"911","placa":"PXZ9261","dist":2825.0,"vol":1136.2,"meta":2.78,"media":2.49,"dp":-10.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"921","placa":"PXZ9258","dist":2955.0,"vol":1226.0,"meta":2.78,"media":2.41,"dp":-13.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"931","placa":"PYB5923","dist":3787.0,"vol":1523.7,"meta":2.78,"media":2.49,"dp":-10.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"941","placa":"PZJ5982","dist":5596.0,"vol":2147.4,"meta":2.78,"media":2.61,"dp":-6.1,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"951","placa":"LMJ4887","dist":4385.0,"vol":1642.9,"meta":2.78,"media":2.67,"dp":-4.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"961","placa":"KRR3232","dist":3996.0,"vol":1540.2,"meta":2.78,"media":2.59,"dp":-6.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"971","placa":"LSS2624","dist":4002.0,"vol":1559.6,"meta":2.78,"media":2.57,"dp":-7.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"981","placa":"KRR3227","dist":2865.0,"vol":1139.1,"meta":2.78,"media":2.52,"dp":-9.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"991","placa":"KYR9266","dist":4460.0,"vol":1708.0,"meta":2.78,"media":2.61,"dp":-6.1,"st":"abaixo"},{"cat":"PADRON","frota":"14308","placa":"TCI8A52","dist":4973.0,"vol":2009.3,"meta":2.55,"media":2.47,"dp":-3.1,"st":"abaixo"},{"cat":"PADRON","frota":"14309","placa":"TCF9H75","dist":7038.0,"vol":2821.3,"meta":2.55,"media":2.49,"dp":-2.4,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"2710","placa":"GYS4157","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14193","placa":"PWG9280","dist":1869.0,"vol":567.1,"meta":3.25,"media":3.3,"dp":1.5,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14197","placa":"PWG9274","dist":1842.0,"vol":594.2,"meta":3.25,"media":3.1,"dp":-4.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14198","placa":"PWG9282","dist":2730.0,"vol":815.3,"meta":3.25,"media":3.35,"dp":3.1,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14242","placa":"OQL8394","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14247","placa":"HAQ0A78","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14258","placa":"HAP7829","dist":607.0,"vol":184.0,"meta":3.16,"media":3.3,"dp":4.4,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14265","placa":"HAP6839","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14266","placa":"OQL8388","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14268","placa":"HAP6597","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14269","placa":"HAQ2013","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14280","placa":"OQL8399","dist":3413.0,"vol":1024.1,"meta":3.25,"media":3.33,"dp":2.5,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14315","placa":"TDW6G90","dist":2449.0,"vol":819.3,"meta":3.16,"media":2.99,"dp":-5.4,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14316","placa":"TDW2H91","dist":3771.0,"vol":1291.1,"meta":3.16,"media":2.92,"dp":-7.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14317","placa":"TDV7B52","dist":8197.0,"vol":2670.4,"meta":3.16,"media":3.07,"dp":-2.8,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14318","placa":"TDV7B19","dist":7580.0,"vol":2446.4,"meta":3.16,"media":3.1,"dp":-1.9,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14319","placa":"TDV7B62","dist":6315.0,"vol":2067.4,"meta":3.16,"media":3.05,"dp":-3.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14320","placa":"TDV7A89","dist":6281.0,"vol":2061.6,"meta":3.16,"media":3.05,"dp":-3.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14321","placa":"TDV7B66","dist":7348.0,"vol":2294.3,"meta":3.16,"media":3.2,"dp":1.3,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14322","placa":"TDV7B54","dist":6739.0,"vol":2137.2,"meta":3.16,"media":3.15,"dp":-0.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"811","placa":"HGJ6399","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14188","placa":"HGJ6484","dist":151.0,"vol":102.0,"meta":2.9,"media":1.48,"dp":-49.0,"st":"critico"},{"cat":"ROD. EXECUTIVO","frota":"14194","placa":"PWK8114","dist":5609.0,"vol":1882.2,"meta":3.0,"media":2.98,"dp":-0.7,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14195","placa":"PWK8117","dist":2781.0,"vol":979.6,"meta":3.0,"media":2.84,"dp":-5.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14201","placa":"GSR6526","dist":142.0,"vol":71.4,"meta":2.9,"media":1.99,"dp":-31.4,"st":"critico"},{"cat":"ROD. EXECUTIVO","frota":"14204","placa":"OQL8358","dist":4019.0,"vol":1299.0,"meta":3.0,"media":3.09,"dp":3.0,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14205","placa":"OQL8379","dist":7055.0,"vol":2354.7,"meta":3.0,"media":3.0,"dp":0.0,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14207","placa":"OQL8374","dist":6016.0,"vol":2044.8,"meta":3.0,"media":2.94,"dp":-2.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14216","placa":"PYU4952","dist":5446.0,"vol":1891.7,"meta":3.0,"media":2.88,"dp":-4.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14217","placa":"PYU4945","dist":3494.0,"vol":1182.3,"meta":3.0,"media":2.96,"dp":-1.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14310","placa":"TDV7B27","dist":3621.0,"vol":1039.4,"meta":3.58,"media":3.48,"dp":-2.8,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14311","placa":"TDV7B57","dist":6724.0,"vol":1940.9,"meta":3.58,"media":3.46,"dp":-3.4,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14312","placa":"TDW2H90","dist":7314.0,"vol":2025.6,"meta":3.58,"media":3.61,"dp":0.8,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14313","placa":"TDY2I30","dist":5700.0,"vol":1595.3,"meta":3.58,"media":3.57,"dp":-0.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14314","placa":"TDY2I43","dist":7285.0,"vol":2054.3,"meta":3.58,"media":3.55,"dp":-0.8,"st":"abaixo"}]},{"mes":"Março","vc":265000,"vt":201113.2,"vo":200807.8,"va":305.4,"dif":63886.8,"fa":108,"tf":128,"cats":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":23125.1,"meta":1.45,"media":1.39,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":29730.0,"meta":3.25,"media":3.55,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":54565.1,"meta":3.25,"media":3.12,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":28,"volume":44332.3,"meta":2.73,"media":2.51,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":4931.4,"meta":2.55,"media":2.46,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":13,"volume":20898.7,"meta":3.16,"media":3.17,"ok":true},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":12,"volume":23225.2,"meta":2.9,"media":3.2,"ok":true}],"frotas":[{"cat":"ARTICULADO","frota":"14172","placa":"OXD3786","dist":2343.0,"vol":1842.1,"meta":1.45,"media":1.27,"dp":-12.4,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14173","placa":"OXD3809","dist":3154.0,"vol":2289.8,"meta":1.45,"media":1.38,"dp":-4.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14174","placa":"OXC9411","dist":5112.0,"vol":3646.2,"meta":1.45,"media":1.4,"dp":-3.4,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14175","placa":"OXC9430","dist":4193.0,"vol":2974.5,"meta":1.45,"media":1.41,"dp":-2.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14176","placa":"OXC9437","dist":4590.0,"vol":3460.1,"meta":1.45,"media":1.33,"dp":-8.3,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14177","placa":"OXC0616","dist":4861.0,"vol":3348.2,"meta":1.45,"media":1.45,"dp":0.0,"st":"ok"},{"cat":"ARTICULADO","frota":"14178","placa":"OXJ0497","dist":4383.0,"vol":2965.1,"meta":1.45,"media":1.48,"dp":2.1,"st":"ok"},{"cat":"ARTICULADO","frota":"14179","placa":"OXJ0501","dist":3642.0,"vol":2599.1,"meta":1.45,"media":1.4,"dp":-3.4,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14288","placa":"SHD1G37","dist":7186.0,"vol":1899.7,"meta":3.25,"media":3.78,"dp":16.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14323","placa":"TDW6G96","dist":4752.0,"vol":1281.6,"meta":3.6,"media":3.71,"dp":3.1,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14324","placa":"TED1I00","dist":2198.0,"vol":594.9,"meta":3.6,"media":3.69,"dp":2.5,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14325","placa":"TDX1B27","dist":8326.0,"vol":2488.3,"meta":3.29,"media":3.35,"dp":1.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14326","placa":"TDX1B22","dist":5688.0,"vol":1709.3,"meta":3.29,"media":3.33,"dp":1.2,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14327","placa":"TDV7B21","dist":9379.0,"vol":2542.2,"meta":3.29,"media":3.69,"dp":12.2,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14328","placa":"TDV6C87","dist":6915.0,"vol":1979.1,"meta":3.29,"media":3.49,"dp":6.1,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14329","placa":"TED1I03","dist":8071.0,"vol":2218.2,"meta":3.29,"media":3.64,"dp":10.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14330","placa":"TED1I05","dist":6970.0,"vol":2182.0,"meta":3.29,"media":3.19,"dp":-3.0,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14331","placa":"TDZ4F92","dist":8233.0,"vol":2220.4,"meta":3.29,"media":3.71,"dp":12.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14332","placa":"TED1I02","dist":9623.0,"vol":2617.3,"meta":3.29,"media":3.68,"dp":11.9,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14333","placa":"TED1I06","dist":2738.0,"vol":810.9,"meta":3.29,"media":3.38,"dp":2.7,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14334","placa":"TED1H95","dist":5253.0,"vol":1509.1,"meta":3.29,"media":3.48,"dp":5.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14335","placa":"TED1H98","dist":5874.0,"vol":1709.0,"meta":3.29,"media":3.44,"dp":4.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14336","placa":"TDZ4F96","dist":7259.0,"vol":2002.2,"meta":3.29,"media":3.63,"dp":10.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14337","placa":"TEG2G14","dist":7113.0,"vol":1966.0,"meta":3.29,"media":3.62,"dp":10.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"101","placa":"TDW6G82","dist":3829.0,"vol":1122.0,"meta":3.45,"media":3.41,"dp":-1.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"102","placa":"TDZ4F95","dist":4917.0,"vol":1418.0,"meta":3.45,"media":3.47,"dp":0.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14281","placa":"SHH0I65","dist":7726.0,"vol":2530.0,"meta":3.04,"media":3.05,"dp":0.3,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14282","placa":"SHH0I79","dist":8102.0,"vol":2541.0,"meta":3.04,"media":3.19,"dp":4.9,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14283","placa":"SHF5I15","dist":7550.0,"vol":2326.0,"meta":3.04,"media":3.25,"dp":6.9,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14284","placa":"SHF4B23","dist":7022.0,"vol":2200.0,"meta":3.04,"media":3.19,"dp":4.9,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14285","placa":"SHE6C29","dist":6486.0,"vol":2146.0,"meta":3.04,"media":3.02,"dp":-0.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14286","placa":"SHF8G14","dist":7138.0,"vol":2422.0,"meta":3.04,"media":2.95,"dp":-3.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14287","placa":"SHC5G71","dist":6719.0,"vol":2036.0,"meta":3.25,"media":3.3,"dp":1.5,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14289","placa":"SHC9J99","dist":5411.0,"vol":1735.0,"meta":3.25,"media":3.12,"dp":-4.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14290","placa":"SHC9J95","dist":3628.0,"vol":1128.0,"meta":3.25,"media":3.22,"dp":-0.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14291","placa":"SHU3I27","dist":4859.0,"vol":1519.0,"meta":3.25,"media":3.2,"dp":-1.5,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14292","placa":"SHO9C20","dist":2881.0,"vol":874.0,"meta":3.25,"media":3.3,"dp":1.5,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14293","placa":"SHP7E71","dist":5691.0,"vol":1785.0,"meta":3.25,"media":3.19,"dp":-1.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14294","placa":"SHO6D74","dist":4131.0,"vol":1324.0,"meta":3.25,"media":3.12,"dp":-4.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14295","placa":"SHU3I25","dist":6826.0,"vol":2040.0,"meta":3.25,"media":3.35,"dp":3.1,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14296","placa":"SJG4G47","dist":7097.0,"vol":2442.0,"meta":3.29,"media":2.91,"dp":-11.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14297","placa":"SJG5H91","dist":6292.0,"vol":2296.0,"meta":3.29,"media":2.74,"dp":-16.7,"st":"critico"},{"cat":"METROPOLITANO SJL","frota":"14298","placa":"SYA9B60","dist":7564.0,"vol":2520.1,"meta":3.29,"media":3.0,"dp":-8.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14299","placa":"SYA9B55","dist":3999.0,"vol":1368.0,"meta":3.29,"media":2.92,"dp":-11.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14300","placa":"SJI9G46","dist":4587.0,"vol":1536.0,"meta":3.29,"media":2.99,"dp":-9.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14301","placa":"SYV3A28","dist":4993.0,"vol":1632.0,"meta":3.29,"media":3.06,"dp":-7.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14302","placa":"SYV2J42","dist":5191.0,"vol":1690.0,"meta":3.29,"media":3.07,"dp":-6.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14303","placa":"SYV2J74","dist":5176.0,"vol":1684.0,"meta":3.29,"media":3.07,"dp":-6.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14304","placa":"SYW1J71","dist":7484.0,"vol":2504.0,"meta":3.29,"media":2.99,"dp":-9.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14305","placa":"SYV2J13","dist":5789.0,"vol":1891.0,"meta":3.29,"media":3.06,"dp":-7.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14306","placa":"SYV3A51","dist":5961.0,"vol":1960.0,"meta":3.29,"media":3.04,"dp":-7.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14307","placa":"SYW1J67","dist":4922.0,"vol":1610.0,"meta":3.29,"media":3.06,"dp":-7.0,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14338","placa":"TED1H97","dist":7669.0,"vol":2286.0,"meta":3.29,"media":3.35,"dp":1.8,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"221","placa":"KRR3241","dist":3594.0,"vol":1474.9,"meta":2.78,"media":2.44,"dp":-12.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"231","placa":"LSS2G08","dist":2988.0,"vol":1219.0,"meta":2.78,"media":2.45,"dp":-11.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"241","placa":"KRR3C30","dist":5357.0,"vol":1930.0,"meta":2.78,"media":2.78,"dp":0.0,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"251","placa":"LSS2G14","dist":3401.0,"vol":1308.1,"meta":2.78,"media":2.6,"dp":-6.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"261","placa":"LSS2G06","dist":3994.0,"vol":1520.1,"meta":2.78,"media":2.63,"dp":-5.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"271","placa":"LSS2G07","dist":5112.0,"vol":1921.2,"meta":2.78,"media":2.66,"dp":-4.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"281","placa":"LSQ6I50","dist":35.0,"vol":1755.8,"meta":2.78,"media":0.02,"dp":-99.3,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"291","placa":"KYM6H37","dist":6198.0,"vol":2342.4,"meta":2.78,"media":2.65,"dp":-4.7,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"301","placa":"QUA6209","dist":4852.0,"vol":1695.1,"meta":2.69,"media":2.86,"dp":6.3,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"311","placa":"QUA6181","dist":5450.0,"vol":1920.2,"meta":2.69,"media":2.84,"dp":5.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"480","placa":"QQU1229","dist":4013.0,"vol":1522.2,"meta":2.69,"media":2.64,"dp":-1.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"490","placa":"QQU1132","dist":3860.0,"vol":1379.8,"meta":2.69,"media":2.8,"dp":4.1,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"500","placa":"QQU1082","dist":3323.0,"vol":1181.0,"meta":2.69,"media":2.81,"dp":4.5,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"510","placa":"QQU1199","dist":3382.0,"vol":1089.0,"meta":2.69,"media":3.11,"dp":15.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"710","placa":"HOE8920","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"720","placa":"HOE8882","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"730","placa":"HOE8885","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"740","placa":"HOE8916","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"771","placa":"HOE8905","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"801","placa":"HOE8893","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"821","placa":"HOE8873","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"831","placa":"HOE8910","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"841","placa":"PJR6597","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"851","placa":"PJR6517","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"861","placa":"PJR2926","dist":3951.0,"vol":1564.4,"meta":2.78,"media":2.53,"dp":-9.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"871","placa":"PJR5052","dist":3479.0,"vol":1432.0,"meta":2.78,"media":2.43,"dp":-12.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"881","placa":"PJR2205","dist":5031.0,"vol":1975.2,"meta":2.78,"media":2.55,"dp":-8.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"891","placa":"KRR3C08","dist":4802.0,"vol":1858.6,"meta":2.78,"media":2.58,"dp":-7.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"901","placa":"KRR3C23","dist":4598.0,"vol":1824.9,"meta":2.78,"media":2.52,"dp":-9.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"911","placa":"PXZ9261","dist":4563.0,"vol":1831.9,"meta":2.78,"media":2.49,"dp":-10.4,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"921","placa":"PXZ9258","dist":3642.0,"vol":1448.7,"meta":2.78,"media":2.51,"dp":-9.7,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"931","placa":"PYB5923","dist":3709.0,"vol":1611.1,"meta":2.78,"media":2.3,"dp":-17.3,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"941","placa":"PZJ5982","dist":4165.0,"vol":1730.0,"meta":2.78,"media":2.41,"dp":-13.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"951","placa":"LMJ4887","dist":4793.0,"vol":1753.9,"meta":2.78,"media":2.73,"dp":-1.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"961","placa":"KRR3232","dist":2294.0,"vol":933.1,"meta":2.78,"media":2.46,"dp":-11.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"971","placa":"LSS2624","dist":3332.0,"vol":1260.0,"meta":2.78,"media":2.64,"dp":-5.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"981","placa":"KRR3227","dist":3818.0,"vol":1487.1,"meta":2.78,"media":2.57,"dp":-7.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"991","placa":"KYR9266","dist":3102.0,"vol":1363.0,"meta":2.78,"media":2.28,"dp":-18.0,"st":"critico"},{"cat":"PADRON","frota":"14308","placa":"TCI8A52","dist":6198.0,"vol":2554.5,"meta":2.55,"media":2.43,"dp":-4.7,"st":"abaixo"},{"cat":"PADRON","frota":"14309","placa":"TCF9H75","dist":5935.0,"vol":2376.9,"meta":2.55,"media":2.5,"dp":-2.0,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"2710","placa":"GYS4157","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14193","placa":"PWG9280","dist":3962.0,"vol":1160.0,"meta":3.25,"media":3.42,"dp":5.2,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14197","placa":"PWG9274","dist":412.0,"vol":112.0,"meta":3.25,"media":3.68,"dp":13.2,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14198","placa":"PWG9282","dist":2799.0,"vol":868.0,"meta":3.25,"media":3.22,"dp":-0.9,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14242","placa":"OQL8394","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14247","placa":"HAQ0A78","dist":378.0,"vol":119.0,"meta":3.16,"media":3.18,"dp":0.6,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14258","placa":"HAP7829","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14265","placa":"HAP6839","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14266","placa":"OQL8388","dist":0.0,"vol":0.0,"meta":3.25,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14268","placa":"HAP6597","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14269","placa":"HAQ2013","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14280","placa":"OQL8399","dist":1684.0,"vol":509.1,"meta":3.25,"media":3.31,"dp":1.8,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14315","placa":"TDW6G90","dist":8932.0,"vol":3018.8,"meta":3.16,"media":2.96,"dp":-6.3,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14316","placa":"TDW2H91","dist":7427.0,"vol":2531.2,"meta":3.16,"media":2.93,"dp":-7.3,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14317","placa":"TDV7B52","dist":6808.0,"vol":2252.8,"meta":3.16,"media":3.02,"dp":-4.4,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14318","placa":"TDV7B19","dist":8648.0,"vol":2762.7,"meta":3.16,"media":3.13,"dp":-0.9,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14319","placa":"TDV7B62","dist":6919.0,"vol":2223.8,"meta":3.16,"media":3.11,"dp":-1.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14320","placa":"TDV7A89","dist":6690.0,"vol":2159.0,"meta":3.16,"media":3.1,"dp":-1.9,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14321","placa":"TDV7B66","dist":7409.0,"vol":2406.1,"meta":3.16,"media":3.08,"dp":-2.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14322","placa":"TDV7B54","dist":2403.0,"vol":776.1,"meta":3.16,"media":3.1,"dp":-1.9,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"811","placa":"HGJ6399","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14188","placa":"HGJ6484","dist":0.0,"vol":0.0,"meta":2.9,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14194","placa":"PWK8114","dist":4388.0,"vol":1431.0,"meta":3.0,"media":3.07,"dp":2.3,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14195","placa":"PWK8117","dist":7009.0,"vol":2321.1,"meta":3.0,"media":3.02,"dp":0.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14201","placa":"GSR6526","dist":0.0,"vol":0.0,"meta":2.9,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14204","placa":"OQL8358","dist":6756.0,"vol":2370.5,"meta":3.0,"media":2.85,"dp":-5.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14205","placa":"OQL8379","dist":6101.0,"vol":2045.4,"meta":3.0,"media":2.98,"dp":-0.7,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14207","placa":"OQL8374","dist":5909.0,"vol":2022.1,"meta":3.0,"media":2.92,"dp":-2.7,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14216","placa":"PYU4952","dist":4017.0,"vol":1443.3,"meta":3.0,"media":2.78,"dp":-7.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14217","placa":"PYU4945","dist":4032.0,"vol":1381.2,"meta":3.0,"media":2.92,"dp":-2.7,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14310","placa":"TDV7B27","dist":6699.0,"vol":1883.1,"meta":3.58,"media":3.56,"dp":-0.6,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14311","placa":"TDV7B57","dist":7540.0,"vol":2166.1,"meta":3.58,"media":3.48,"dp":-2.8,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14312","placa":"TDW2H90","dist":6933.0,"vol":1961.3,"meta":3.58,"media":3.53,"dp":-1.4,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14313","placa":"TDY2I30","dist":6928.0,"vol":1939.9,"meta":3.58,"media":3.57,"dp":-0.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14314","placa":"TDY2I43","dist":8265.0,"vol":2260.2,"meta":3.58,"media":3.66,"dp":2.2,"st":"ok"}]},{"mes":"Abril","vc":175000,"vt":187316.4,"vo":186894.2,"va":422.2,"dif":-12316.4,"fa":112,"tf":128,"cats":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":20519.0,"meta":1.45,"media":1.38,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":28043.7,"meta":3.25,"media":3.55,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":49501.0,"meta":3.25,"media":3.14,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":28,"volume":40371.8,"meta":2.73,"media":2.67,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":5457.3,"meta":2.55,"media":2.52,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":15,"volume":20547.5,"meta":3.16,"media":2.96,"ok":false},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":14,"volume":22454.1,"meta":2.9,"media":3.12,"ok":true}],"frotas":[{"cat":"ARTICULADO","frota":"14172","placa":"OXD3786","dist":3665.0,"vol":2791.1,"meta":1.45,"media":1.31,"dp":-9.7,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14173","placa":"OXD3809","dist":886.0,"vol":694.0,"meta":1.45,"media":1.28,"dp":-11.7,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14174","placa":"OXC9411","dist":4608.0,"vol":3283.1,"meta":1.45,"media":1.4,"dp":-3.4,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14175","placa":"OXC9430","dist":728.0,"vol":528.0,"meta":1.45,"media":1.38,"dp":-4.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14176","placa":"OXC9437","dist":5742.0,"vol":4077.2,"meta":1.45,"media":1.41,"dp":-2.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14177","placa":"OXC0616","dist":4199.0,"vol":3046.4,"meta":1.45,"media":1.38,"dp":-4.8,"st":"abaixo"},{"cat":"ARTICULADO","frota":"14178","placa":"OXJ0497","dist":3835.0,"vol":2577.0,"meta":1.45,"media":1.49,"dp":2.8,"st":"ok"},{"cat":"ARTICULADO","frota":"14179","placa":"OXJ0501","dist":4871.0,"vol":3522.3,"meta":1.45,"media":1.38,"dp":-4.8,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14288","placa":"SHD1G37","dist":4506.0,"vol":1236.1,"meta":3.25,"media":3.65,"dp":12.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14323","placa":"TDW6G96","dist":3468.0,"vol":969.1,"meta":3.6,"media":3.58,"dp":-0.6,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14324","placa":"TED1I00","dist":6999.0,"vol":1818.5,"meta":3.6,"media":3.85,"dp":6.9,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14325","placa":"TDX1B27","dist":6935.0,"vol":2036.0,"meta":3.29,"media":3.41,"dp":3.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14326","placa":"TDX1B22","dist":2060.0,"vol":606.1,"meta":3.29,"media":3.4,"dp":3.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14327","placa":"TDV7B21","dist":9326.0,"vol":2698.8,"meta":3.29,"media":3.46,"dp":5.2,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14328","placa":"TDV6C87","dist":4514.0,"vol":1327.5,"meta":3.29,"media":3.4,"dp":3.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14329","placa":"TED1I03","dist":6482.0,"vol":1838.2,"meta":3.29,"media":3.53,"dp":7.3,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14330","placa":"TED1I05","dist":8100.0,"vol":2598.0,"meta":3.29,"media":3.12,"dp":-5.2,"st":"abaixo"},{"cat":"METROPOLITANO PL","frota":"14331","placa":"TDZ4F92","dist":7897.0,"vol":2198.7,"meta":3.29,"media":3.59,"dp":9.1,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14332","placa":"TED1I02","dist":7175.0,"vol":1935.1,"meta":3.29,"media":3.71,"dp":12.8,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14333","placa":"TED1I06","dist":3752.0,"vol":1052.1,"meta":3.29,"media":3.57,"dp":8.5,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14334","placa":"TED1H95","dist":5737.0,"vol":1631.0,"meta":3.29,"media":3.52,"dp":7.0,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14335","placa":"TED1H98","dist":8480.0,"vol":2233.8,"meta":3.29,"media":3.8,"dp":15.5,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14336","placa":"TDZ4F96","dist":7449.0,"vol":2046.4,"meta":3.29,"media":3.64,"dp":10.6,"st":"ok"},{"cat":"METROPOLITANO PL","frota":"14337","placa":"TEG2G14","dist":6502.0,"vol":1818.2,"meta":3.29,"media":3.58,"dp":8.8,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"101","placa":"TDW6G82","dist":3811.0,"vol":1106.0,"meta":3.45,"media":3.45,"dp":0.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"102","placa":"TDZ4F95","dist":4332.0,"vol":1234.0,"meta":3.45,"media":3.51,"dp":1.7,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14281","placa":"SHH0I65","dist":5795.0,"vol":1860.0,"meta":3.04,"media":3.12,"dp":2.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14282","placa":"SHH0I79","dist":6258.0,"vol":1952.0,"meta":3.04,"media":3.21,"dp":5.6,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14283","placa":"SHF5I15","dist":7355.0,"vol":2423.0,"meta":3.04,"media":3.04,"dp":0.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14284","placa":"SHF4B23","dist":7445.0,"vol":2376.0,"meta":3.04,"media":3.13,"dp":3.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14285","placa":"SHE6C29","dist":5770.0,"vol":1960.0,"meta":3.04,"media":2.94,"dp":-3.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14286","placa":"SHF8G14","dist":5170.0,"vol":1572.0,"meta":3.04,"media":3.29,"dp":8.2,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14287","placa":"SHC5G71","dist":4802.0,"vol":1510.0,"meta":3.25,"media":3.18,"dp":-2.2,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14289","placa":"SHC9J99","dist":5290.0,"vol":1640.0,"meta":3.25,"media":3.23,"dp":-0.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14290","placa":"SHC9J95","dist":4138.0,"vol":1296.0,"meta":3.25,"media":3.19,"dp":-1.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14291","placa":"SHU3I27","dist":5894.0,"vol":1782.0,"meta":3.25,"media":3.31,"dp":1.8,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14292","placa":"SHO9C20","dist":4110.0,"vol":1230.0,"meta":3.25,"media":3.34,"dp":2.8,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14293","placa":"SHP7E71","dist":4443.0,"vol":1404.0,"meta":3.25,"media":3.16,"dp":-2.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14294","placa":"SHO6D74","dist":4612.0,"vol":1421.0,"meta":3.25,"media":3.25,"dp":0.0,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14295","placa":"SHU3I25","dist":6867.0,"vol":1996.0,"meta":3.25,"media":3.44,"dp":5.8,"st":"ok"},{"cat":"METROPOLITANO SJL","frota":"14296","placa":"SJG4G47","dist":5069.0,"vol":1730.0,"meta":3.29,"media":2.93,"dp":-10.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14297","placa":"SJG5H91","dist":6350.0,"vol":2378.0,"meta":3.29,"media":2.67,"dp":-18.8,"st":"critico"},{"cat":"METROPOLITANO SJL","frota":"14298","placa":"SYA9B60","dist":5168.0,"vol":1701.0,"meta":3.29,"media":3.04,"dp":-7.6,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14299","placa":"SYA9B55","dist":3755.0,"vol":1253.9,"meta":3.29,"media":2.99,"dp":-9.1,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14300","placa":"SJI9G46","dist":3817.0,"vol":1326.0,"meta":3.29,"media":2.88,"dp":-12.5,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14301","placa":"SYV3A28","dist":5274.0,"vol":1658.0,"meta":3.29,"media":3.18,"dp":-3.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14302","placa":"SYV2J42","dist":4595.0,"vol":1516.0,"meta":3.29,"media":3.03,"dp":-7.9,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14303","placa":"SYV2J74","dist":4852.0,"vol":1538.0,"meta":3.29,"media":3.15,"dp":-4.3,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14304","placa":"SYW1J71","dist":7727.0,"vol":2492.0,"meta":3.29,"media":3.1,"dp":-5.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14305","placa":"SYV2J13","dist":5123.0,"vol":1670.0,"meta":3.29,"media":3.07,"dp":-6.7,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14306","placa":"SYV3A51","dist":5029.0,"vol":1676.0,"meta":3.29,"media":3.0,"dp":-8.8,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14307","placa":"SYW1J67","dist":4257.0,"vol":1430.0,"meta":3.29,"media":2.98,"dp":-9.4,"st":"abaixo"},{"cat":"METROPOLITANO SJL","frota":"14338","placa":"TED1H97","dist":7652.0,"vol":2370.0,"meta":3.29,"media":3.23,"dp":-1.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"221","placa":"KRR3241","dist":4152.0,"vol":1570.1,"meta":2.78,"media":2.64,"dp":-5.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"231","placa":"LSS2G08","dist":4508.0,"vol":1661.9,"meta":2.78,"media":2.71,"dp":-2.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"241","placa":"KRR3C30","dist":3438.0,"vol":1249.0,"meta":2.78,"media":2.75,"dp":-1.1,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"251","placa":"LSS2G14","dist":5137.0,"vol":1891.9,"meta":2.78,"media":2.72,"dp":-2.2,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"261","placa":"LSS2G06","dist":4608.0,"vol":1733.2,"meta":2.78,"media":2.66,"dp":-4.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"271","placa":"LSS2G07","dist":4927.0,"vol":1747.8,"meta":2.78,"media":2.82,"dp":1.4,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"281","placa":"LSQ6I50","dist":5517.0,"vol":2211.2,"meta":2.78,"media":2.5,"dp":-10.1,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"291","placa":"KYM6H37","dist":4300.0,"vol":1659.1,"meta":2.78,"media":2.59,"dp":-6.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"301","placa":"QUA6209","dist":4852.0,"vol":1693.6,"meta":2.69,"media":2.86,"dp":6.3,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"311","placa":"QUA6181","dist":4625.0,"vol":1556.6,"meta":2.69,"media":2.97,"dp":10.4,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"480","placa":"QQU1229","dist":3463.0,"vol":1219.0,"meta":2.69,"media":2.84,"dp":5.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"490","placa":"QQU1132","dist":3545.0,"vol":1378.9,"meta":2.69,"media":2.57,"dp":-4.5,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"500","placa":"QQU1082","dist":4109.0,"vol":1489.1,"meta":2.69,"media":2.76,"dp":2.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"510","placa":"QQU1199","dist":4771.0,"vol":1536.1,"meta":2.69,"media":3.11,"dp":15.6,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"710","placa":"HOE8920","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"720","placa":"HOE8882","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"730","placa":"HOE8885","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"740","placa":"HOE8916","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"771","placa":"HOE8905","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"801","placa":"HOE8893","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"821","placa":"HOE8873","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"831","placa":"HOE8910","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"841","placa":"PJR6597","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"851","placa":"PJR6517","dist":0.0,"vol":0.0,"meta":2.78,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"MUNICIPAL PL","frota":"861","placa":"PJR2926","dist":2961.0,"vol":1111.4,"meta":2.78,"media":2.66,"dp":-4.3,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"871","placa":"PJR5052","dist":2998.0,"vol":1224.0,"meta":2.78,"media":2.45,"dp":-11.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"881","placa":"PJR2205","dist":3221.0,"vol":1235.1,"meta":2.78,"media":2.61,"dp":-6.1,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"891","placa":"KRR3C08","dist":6090.0,"vol":2231.5,"meta":2.78,"media":2.73,"dp":-1.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"901","placa":"KRR3C23","dist":3798.0,"vol":1485.9,"meta":2.78,"media":2.56,"dp":-7.9,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"911","placa":"PXZ9261","dist":2336.0,"vol":921.1,"meta":2.78,"media":2.54,"dp":-8.6,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"921","placa":"PXZ9258","dist":2432.0,"vol":1026.5,"meta":2.78,"media":2.37,"dp":-14.7,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"931","placa":"PYB5923","dist":3267.0,"vol":1171.7,"meta":2.78,"media":2.79,"dp":0.4,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"941","placa":"PZJ5982","dist":3887.0,"vol":1566.2,"meta":2.78,"media":2.48,"dp":-10.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"951","placa":"LMJ4887","dist":3647.0,"vol":1304.2,"meta":2.78,"media":2.8,"dp":0.7,"st":"ok"},{"cat":"MUNICIPAL PL","frota":"961","placa":"KRR3232","dist":3954.0,"vol":1509.5,"meta":2.78,"media":2.62,"dp":-5.8,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"971","placa":"LSS2624","dist":3609.0,"vol":1351.0,"meta":2.78,"media":2.67,"dp":-4.0,"st":"abaixo"},{"cat":"MUNICIPAL PL","frota":"981","placa":"KRR3227","dist":438.0,"vol":206.0,"meta":2.78,"media":2.13,"dp":-23.4,"st":"critico"},{"cat":"MUNICIPAL PL","frota":"991","placa":"KYR9266","dist":3946.0,"vol":1430.1,"meta":2.78,"media":2.76,"dp":-0.7,"st":"abaixo"},{"cat":"PADRON","frota":"14308","placa":"TCI8A52","dist":7812.0,"vol":3066.2,"meta":2.55,"media":2.55,"dp":0.0,"st":"ok"},{"cat":"PADRON","frota":"14309","placa":"TCF9H75","dist":5954.0,"vol":2391.1,"meta":2.55,"media":2.49,"dp":-2.4,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"2710","placa":"GYS4157","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14193","placa":"PWG9280","dist":2594.0,"vol":762.1,"meta":3.25,"media":3.4,"dp":4.6,"st":"ok"},{"cat":"ROD. CONVENCIONAL","frota":"14197","placa":"PWG9274","dist":686.0,"vol":274.0,"meta":3.25,"media":2.5,"dp":-23.1,"st":"critico"},{"cat":"ROD. CONVENCIONAL","frota":"14198","placa":"PWG9282","dist":1272.0,"vol":399.0,"meta":3.25,"media":3.19,"dp":-1.8,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14242","placa":"OQL8394","dist":191.0,"vol":72.0,"meta":3.25,"media":2.65,"dp":-18.5,"st":"critico"},{"cat":"ROD. CONVENCIONAL","frota":"14247","placa":"HAQ0A78","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14258","placa":"HAP7829","dist":525.0,"vol":169.0,"meta":3.16,"media":3.11,"dp":-1.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14265","placa":"HAP6839","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14266","placa":"OQL8388","dist":205.0,"vol":114.0,"meta":3.25,"media":1.8,"dp":-44.6,"st":"critico"},{"cat":"ROD. CONVENCIONAL","frota":"14268","placa":"HAP6597","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14269","placa":"HAQ2013","dist":0.0,"vol":0.0,"meta":3.16,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. CONVENCIONAL","frota":"14280","placa":"OQL8399","dist":681.0,"vol":216.1,"meta":3.25,"media":3.15,"dp":-3.1,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14315","placa":"TDW6G90","dist":5572.0,"vol":1803.1,"meta":3.16,"media":3.09,"dp":-2.2,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14316","placa":"TDW2H91","dist":8115.0,"vol":2835.6,"meta":3.16,"media":2.86,"dp":-9.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14317","placa":"TDV7B52","dist":6947.0,"vol":2273.2,"meta":3.16,"media":3.06,"dp":-3.2,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14318","placa":"TDV7B19","dist":7560.0,"vol":2428.2,"meta":3.16,"media":3.11,"dp":-1.6,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14319","placa":"TDV7B62","dist":9002.0,"vol":2889.6,"meta":3.16,"media":3.12,"dp":-1.3,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14320","placa":"TDV7A89","dist":7173.0,"vol":2328.2,"meta":3.16,"media":3.08,"dp":-2.5,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14321","placa":"TDV7B66","dist":5945.0,"vol":1907.2,"meta":3.16,"media":3.12,"dp":-1.3,"st":"abaixo"},{"cat":"ROD. CONVENCIONAL","frota":"14322","placa":"TDV7B54","dist":6512.0,"vol":2076.2,"meta":3.16,"media":3.14,"dp":-0.6,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"811","placa":"HGJ6399","dist":0.0,"vol":0.0,"meta":2.73,"media":0.0,"dp":null,"st":"sem_dados"},{"cat":"ROD. EXECUTIVO","frota":"14188","placa":"HGJ6484","dist":307.0,"vol":100.0,"meta":2.9,"media":3.07,"dp":5.9,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14194","placa":"PWK8114","dist":5788.0,"vol":1866.0,"meta":3.0,"media":3.1,"dp":3.3,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14195","placa":"PWK8117","dist":5361.0,"vol":1808.7,"meta":3.0,"media":2.96,"dp":-1.3,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14201","placa":"GSR6526","dist":285.0,"vol":163.1,"meta":2.9,"media":1.75,"dp":-39.7,"st":"critico"},{"cat":"ROD. EXECUTIVO","frota":"14204","placa":"OQL8358","dist":4723.0,"vol":1549.2,"meta":3.0,"media":3.05,"dp":1.7,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14205","placa":"OQL8379","dist":7845.0,"vol":2577.2,"meta":3.0,"media":3.04,"dp":1.3,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14207","placa":"OQL8374","dist":5069.0,"vol":1649.2,"meta":3.0,"media":3.07,"dp":2.3,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14216","placa":"PYU4952","dist":3944.0,"vol":1399.1,"meta":3.0,"media":2.82,"dp":-6.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14217","placa":"PYU4945","dist":4500.0,"vol":1545.2,"meta":3.0,"media":2.91,"dp":-3.0,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14310","placa":"TDV7B27","dist":7359.0,"vol":2028.2,"meta":3.58,"media":3.63,"dp":1.4,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14311","placa":"TDV7B57","dist":5957.0,"vol":1733.9,"meta":3.58,"media":3.44,"dp":-3.9,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14312","placa":"TDW2H90","dist":7801.0,"vol":2128.2,"meta":3.58,"media":3.67,"dp":2.5,"st":"ok"},{"cat":"ROD. EXECUTIVO","frota":"14313","placa":"TDY2I30","dist":7114.0,"vol":1995.9,"meta":3.58,"media":3.56,"dp":-0.6,"st":"abaixo"},{"cat":"ROD. EXECUTIVO","frota":"14314","placa":"TDY2I43","dist":6904.0,"vol":1910.2,"meta":3.58,"media":3.61,"dp":0.8,"st":"ok"}]}];
 
-// ── TABS ──
-function showTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+const CATS=['ARTICULADO','METROPOLITANO PL','METROPOLITANO SJL','MUNICIPAL PL','PADRON','ROD. CONVENCIONAL','ROD. EXECUTIVO'];
+const COLS=['#E8711A','#2B3A8C','#0891B2','#16A34A','#7C3AED','#D97706','#DC2626'];
+let mi=3,sk='dp',sd=1;
+
+function tab(id,btn){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
 }
+function fmt(n){return n!=null?Math.round(n).toLocaleString('pt-BR'):'—'}
+function fmt2(n){return n!=null?n.toFixed(2):'—'}
 
-// ── VOLUME BARS ──
-function buildVolBars() {
-  const cats = DATA.categorias;
-  const maxVol = Math.max(...cats.map(c=>c.volume));
-  const barsEl = document.getElementById('vol-bars');
-  const labelsEl = document.getElementById('vol-labels');
-  const colors = ['#3b82f6','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
-
-  cats.forEach((c,i) => {
-    const pct = (c.volume/maxVol*100).toFixed(1);
-    const vol = Math.round(c.volume).toLocaleString('pt-BR');
-    const wrap = document.createElement('div');
-    wrap.className = 'vol-bar-wrap';
-    wrap.innerHTML = `
-      <div class="vol-bar-val">${vol}</div>
-      <div class="vol-bar-outer">
-        <div class="vol-bar-inner" style="height:${pct}%;background:${colors[i]}" data-tip="${c.categoria}: ${vol} L"></div>
-      </div>`;
-    barsEl.appendChild(wrap);
-
-    const lbl = document.createElement('div');
-    lbl.className = 'vol-bar-label';
-    lbl.style.flex='1';
-    lbl.style.textAlign='center';
-    lbl.style.fontSize='9px';
-    lbl.style.color='var(--text3)';
-    lbl.textContent = c.categoria.replace('METROPOLITANO','METRO').replace('CONVENCIONAL','CONV.').replace('EXECUTIVO','EXEC.');
-    labelsEl.appendChild(lbl);
+function buildMesBtns(){
+  const c=document.getElementById('mbtns');
+  D.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='mb'+(i===3?' active':'');
+    b.textContent=d.mes;
+    b.onclick=()=>setMes(i);
+    c.appendChild(b);
   });
 }
 
-// ── CATEGORY CARDS ──
-function buildCatCards() {
-  const grid = document.getElementById('cat-grid');
-  DATA.categorias.forEach(c => {
-    const pct = c.media > 0 ? Math.min((c.media/c.meta)*100,120) : 0;
-    const isOk = c.ok;
-    const color = isOk ? '#10b981' : '#ef4444';
-    const badge = isOk
-      ? '<span class="status-badge badge-ok">✓ OK</span>'
-      : '<span class="status-badge badge-warn">✗ Abaixo</span>';
-    const card = document.createElement('div');
-    card.className='cat-card';
-    card.innerHTML = `
-      <div class="cat-name">${c.categoria} ${badge}</div>
-      <div class="cat-meter">
-        <div class="cat-meter-label"><span>Média vs Meta</span><span>${c.media.toFixed(2)} / ${c.meta.toFixed(2)} km/l</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      </div>
-      <div class="cat-stats">
-        <div><div class="cat-stat-val">${c.veiculos}</div><div class="cat-stat-lbl">Frotas</div></div>
-        <div><div class="cat-stat-val">${c.abastecidos}</div><div class="cat-stat-lbl">Abast.</div></div>
-        <div><div class="cat-stat-val">${Math.round(c.volume).toLocaleString('pt-BR')}</div><div class="cat-stat-lbl">Litros</div></div>
-      </div>`;
-    grid.appendChild(card);
+function setMes(i){
+  mi=i;
+  document.querySelectorAll('.mb').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('hbadge').textContent=D[i].mes+' 2026';
+  renderDash();renderFrotas();renderRanking();renderVolume();
+}
+
+function renderDash(){
+  const d=D[mi];
+  const kdata=[
+    {l:'Volume Comprado',v:fmt(d.vc),u:'litros',s:'Declarado no mês',c:'var(--or)'},
+    {l:'Total no Sistema',v:fmt(d.vt),u:'L',s:'Registrado pelo sistema',c:'var(--az)'},
+    {l:'Frota Operacional',v:fmt(d.vo),u:'L',s:'Ônibus em linha',c:'#16A34A'},
+    {l:'Apoio + Particular',v:fmt(d.va),u:'L',s:'Contabilizados no total',c:'#7C3AED'},
+    {l:'Diferença',v:(d.dif>=0?'+':'')+fmt(d.dif),u:'L',s:'Compra − Sistema',c:d.dif>=0?'#16A34A':'#DC2626',vc:d.dif>=0?'var(--ok)':'var(--wn)'},
+    {l:'Frotas Ativas',v:d.fa,u:'/ '+d.tf,s:'Abasteceram no mês',c:'var(--or)'},
+  ];
+  const g=document.getElementById('kpis');g.innerHTML='';
+  kdata.forEach(k=>{
+    const el=document.createElement('div');el.className='kpi';
+    el.style.setProperty('--kc',k.c);
+    el.innerHTML='<div class="kl">'+k.l+'</div><div class="kv" style="color:'+(k.vc||'var(--tx)')+'">'+k.v+'<span class="u">'+k.u+'</span></div><div class="ks">'+k.s+'</div>';
+    g.appendChild(el);
+  });
+  const cg=document.getElementById('cats');cg.innerHTML='';
+  d.cats.forEach(c=>{
+    const pct=c.media>0?Math.min((c.media/c.meta)*100,120):0;
+    const cor=c.ok?'var(--ok)':'var(--wn)';
+    const el=document.createElement('div');el.className='cc';
+    el.innerHTML='<div class="ct"><span class="cn">'+c.categoria+'</span><span class="'+(c.ok?'bok':'bwn')+'">'+(c.ok?'✓ OK':'✗ Abaixo')+'</span></div>'+
+      '<div class="bl"><span>Média vs Meta</span><span style="font-family:monospace;color:var(--tx)">'+c.media.toFixed(2)+' / '+c.meta.toFixed(2)+' km/l</span></div>'+
+      '<div class="bt"><div class="bf" style="width:'+pct+'%;background:'+cor+'"></div></div>'+
+      '<div class="cs"><div><div class="cv">'+c.veiculos+'</div><div class="cl3">Frotas</div></div>'+
+      '<div><div class="cv">'+c.abastecidos+'</div><div class="cl3">Abast.</div></div>'+
+      '<div><div class="cv">'+fmt(c.volume)+'</div><div class="cl3">Litros</div></div></div>';
+    cg.appendChild(el);
   });
 }
 
-// ── RANKING ──
-function buildRanking() {
-  const grid = document.getElementById('ranking-grid');
-  const com = DATA.frotas.filter(f=>f.media>0&&f.meta>0);
-  const piores = [...com].sort((a,b)=>(a.diff_pct||0)-(b.diff_pct||0)).slice(0,8);
-  const melhores = [...com].sort((a,b)=>(b.diff_pct||0)-(a.diff_pct||0)).slice(0,8);
-
-  function rankCard(title, items, isWorst) {
-    const card = document.createElement('div');
-    card.className='rank-card';
-    card.innerHTML = `<h3 style="color:${isWorst?'#ef4444':'#10b981'}">${title}</h3>`;
-    items.forEach((f,i) => {
-      const color = isWorst ? '#ef4444' : '#10b981';
-      const item = document.createElement('div');
-      item.className='rank-item';
-      item.innerHTML = `
-        <div class="rank-num">${i+1}</div>
-        <div class="rank-info">
-          <div class="rank-frota">Frota ${f.frota}</div>
-          <div class="rank-cat">${f.categoria} · ${f.placa}</div>
-        </div>
-        <div class="rank-val" style="color:${color}">${f.media.toFixed(2)}<span style="font-size:11px;color:var(--text3)"> km/l</span></div>`;
-      card.appendChild(item);
+function renderHistorico(){
+  const hg=document.getElementById('hist');hg.innerHTML='';
+  CATS.forEach((cat,ci)=>{
+    const vals=D.map(d=>{const c=d.cats.find(x=>x.categoria===cat);return c?c.media:0;});
+    const meta=D[0].cats.find(c=>c.categoria===cat)?.meta||0;
+    const maxV=Math.max(...vals,meta)*1.1||1;
+    const card=document.createElement('div');card.className='hc';
+    let rows='';
+    D.forEach((d,i)=>{
+      const v=vals[i];const pct=v>0?(v/maxV*100).toFixed(1):0;
+      const cor=v>=meta&&v>0?'var(--ok)':'var(--wn)';
+      rows+='<div class="hr"><span class="hm">'+d.mes.substring(0,3)+'</span>'+
+        '<div class="hbw"><div class="hbt"><div class="hbf" style="width:'+pct+'%;background:'+cor+'"></div></div></div>'+
+        '<span class="hv">'+(v>0?v.toFixed(2):'—')+'</span></div>';
     });
-    return card;
-  }
-
-  grid.appendChild(rankCard('🚨 Piores Médias do Mês', piores, true));
-  grid.appendChild(rankCard('🏆 Melhores Médias do Mês', melhores, false));
+    card.innerHTML='<h3 style="color:'+COLS[ci]+'">'+cat+'</h3>'+rows+
+      '<div style="font-size:10px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)">Meta: <b style="font-family:monospace;color:var(--tx)">'+meta.toFixed(2)+' km/l</b></div>';
+    hg.appendChild(card);
+  });
+  const hv=document.getElementById('hvol');
+  let th='<thead><tr><th>Categoria</th>'+D.map(d=>'<th>'+d.mes+'</th>').join('')+'</tr></thead><tbody>';
+  let rows='';
+  CATS.forEach(cat=>{
+    rows+='<tr><td>'+cat+'</td>'+D.map(d=>{const c=d.cats.find(x=>x.categoria===cat);return'<td>'+(c?fmt(c.volume):'—')+'</td>';}).join('')+'</tr>';
+  });
+  rows+='<tr style="font-weight:700;background:#FAFBFD"><td>TOTAL OP.</td>'+D.map(d=>'<td style="color:var(--or)">'+fmt(d.vo)+'</td>').join('')+'</tr>';
+  hv.innerHTML=th+rows+'</tbody>';
 }
 
-// ── FROTA TABLE ──
-let frotas = [...DATA.frotas];
-let sortKey = 'diff_pct';
-let sortDir = 1;
+function renderFrotas(){
+  const sel=document.getElementById('fcat');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todas as categorias</option>';
+  CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  if(prev)sel.value=prev;
+  ft();
+}
 
-function buildCatFilter() {
-  const sel = document.getElementById('cat-filter');
-  const cats = [...new Set(DATA.frotas.map(f=>f.categoria))].sort();
-  cats.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c; o.textContent = c;
-    sel.appendChild(o);
+function ft(){
+  const q=document.getElementById('si').value.toLowerCase();
+  const cat=document.getElementById('fcat').value;
+  const st=document.getElementById('fst').value;
+  let rows=D[mi].frotas.filter(f=>{
+    return(!q||f.frota.includes(q)||f.placa.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q))&&
+           (!cat||f.cat===cat)&&(!st||f.st===st);
+  });
+  if(sk){rows.sort((a,b)=>{const av=a[sk]??-9999,bv=b[sk]??-9999;return typeof av==='string'?av.localeCompare(bv)*sd:(av-bv)*sd;});}
+  document.getElementById('cnt').textContent=rows.length+' frotas';
+  const tb=document.getElementById('ftb');tb.innerHTML='';
+  rows.forEach(f=>{
+    const dp=f.dp;
+    let dh='—';
+    if(dp!=null){const cls=dp>=0?'dp2':(dp<-15?'dc2':'dn2');dh='<span class="'+cls+'">'+(dp>=0?'+':'')+dp.toFixed(1)+'%</span>';}
+    const mc=f.media>0?(f.media>=f.meta?'var(--ok)':'var(--wn)'):'var(--t3)';
+    const bp=f.meta>0&&f.media>0?Math.min((f.media/f.meta)*100,120):0;
+    const bc=f.media>=f.meta?'var(--ok)':'var(--wn)';
+    let pill='';
+    if(f.st==='ok')pill='<span class="pill p-ok">✓ OK</span>';
+    else if(f.st==='abaixo')pill='<span class="pill p-wn">✗ Abaixo</span>';
+    else if(f.st==='critico')pill='<span class="pill p-cr">⚠ Crítico</span>';
+    else pill='<span class="pill p-gy">— S/ dados</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td style="font-size:11px;color:var(--t3)">'+f.cat+'</td>'+
+      '<td class="tf2">'+f.frota+'</td><td style="font-size:11px">'+f.placa+'</td>'+
+      '<td style="font-family:monospace">'+(f.dist>0?fmt(f.dist):'—')+'</td>'+
+      '<td style="font-family:monospace">'+(f.vol>0?fmt(f.vol):'—')+'</td>'+
+      '<td style="font-family:monospace">'+f.meta.toFixed(2)+'</td>'+
+      '<td style="font-family:monospace;font-weight:600;color:'+mc+'">'+(f.media>0?f.media.toFixed(2):'—')+'</td>'+
+      '<td>'+dh+'</td>'+
+      '<td><div class="mb2"><div class="mbt2"><div class="mbf2" style="width:'+bp+'%;background:'+bc+'"></div></div></div></td>'+
+      '<td>'+pill+'</td>';
+    tb.appendChild(tr);
   });
 }
 
-function filterTable() {
-  const q = document.getElementById('search-input').value.toLowerCase();
-  const cat = document.getElementById('cat-filter').value;
-  const st = document.getElementById('status-filter').value;
-  frotas = DATA.frotas.filter(f => {
-    const matchQ = !q || f.frota.includes(q) || f.placa.toLowerCase().includes(q) || f.categoria.toLowerCase().includes(q);
-    const matchC = !cat || f.categoria === cat;
-    const matchS = !st || f.status === st;
-    return matchQ && matchC && matchS;
-  });
-  renderTable();
-}
+function so(k){if(sk===k)sd*=-1;else{sk=k;sd=1;}ft();}
 
-function sortTable(key) {
-  if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
-  frotas.sort((a,b) => {
-    const av = a[key]??-9999, bv = b[key]??-9999;
-    return typeof av==='string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
-  });
-  renderTable();
-}
-
-function pillHtml(st) {
-  if(st==='ok')       return '<span class="pill pill-ok">✓ OK</span>';
-  if(st==='abaixo')   return '<span class="pill pill-warn">✗ Abaixo</span>';
-  if(st==='critico')  return '<span class="pill pill-crit">⚠ Crítico</span>';
-  return '<span class="pill pill-gray">— Sem dados</span>';
-}
-
-function renderTable() {
-  const tbody = document.getElementById('frota-tbody');
-  document.getElementById('count-badge').textContent = `${frotas.length} frotas`;
-  tbody.innerHTML = '';
-  frotas.forEach(f => {
-    const diff = f.diff_pct;
-    let diffHtml = '—';
-    if(diff!==null){
-      const cls = diff>=0?'diff-pos':(diff<-15?'diff-crit':'diff-neg');
-      diffHtml = `<span class="${cls}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`;
-    }
-    const mediaColor = f.media===0?'var(--text3)':(f.media>=f.meta?'#10b981':'#ef4444');
-    const barPct = f.meta>0&&f.media>0 ? Math.min((f.media/f.meta)*100,120) : 0;
-    const barColor = f.media>=f.meta?'#10b981':'#ef4444';
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="td-cat">${f.categoria}</td>
-      <td class="td-frota">${f.frota}</td>
-      <td class="td-placa">${f.placa}</td>
-      <td>${f.distancia>0?f.distancia.toLocaleString('pt-BR'):'—'}</td>
-      <td>${f.volume>0?f.volume.toLocaleString('pt-BR',{minimumFractionDigits:0}):'—'}</td>
-      <td>${f.meta.toFixed(2)}</td>
-      <td class="td-media" style="color:${mediaColor}">${f.media>0?f.media.toFixed(2):'—'}</td>
-      <td>${diffHtml}</td>
-      <td><div class="mini-bar-wrap"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div></div></td>
-      <td>${pillHtml(f.status)}</td>`;
-    tbody.appendChild(tr);
+function renderRanking(){
+  const rg=document.getElementById('rank');rg.innerHTML='';
+  const com=D[mi].frotas.filter(f=>f.media>0&&f.meta>0);
+  const piores=[...com].sort((a,b)=>(a.dp||0)-(b.dp||0)).slice(0,8);
+  const melhores=[...com].sort((a,b)=>(b.dp||0)-(a.dp||0)).slice(0,8);
+  [[piores,'🚨 Piores Médias','var(--wn)'],[melhores,'🏆 Melhores Médias','var(--ok)']].forEach(([items,title,cor])=>{
+    const c=document.createElement('div');c.className='rc';
+    c.innerHTML='<h3 style="color:'+cor+'">'+title+' · '+D[mi].mes+'</h3>'+
+      items.map((f,i)=>'<div class="ri"><div class="rn">'+(i+1)+'</div><div class="rif"><div class="rf2">Frota '+f.frota+'</div><div class="rcat">'+f.cat+' · '+f.placa+'</div></div><div class="rv" style="color:'+cor+'">'+f.media.toFixed(2)+'<span style="font-size:10px;color:var(--t3)"> km/l</span></div></div>').join('');
+    rg.appendChild(c);
   });
 }
 
-// ── MODELOS TABLE ──
-function buildModeloTable() {
-  const tbody = document.getElementById('modelo-tbody');
-  DATA.modelos.forEach(m => {
-    const ok = m.media>0 && m.media>=m.meta;
-    const abaixo = m.media>0 && m.media<m.meta && (m.meta-m.media)/m.meta<0.15;
-    const crit = m.media>0 && (m.meta-m.media)/m.meta>=0.15;
-    let statusHtml;
-    if(!m.media) statusHtml = '<span class="pill pill-gray">— Sem dados</span>';
-    else if(ok)    statusHtml = '<span class="pill pill-ok">✓ OK</span>';
-    else if(crit)  statusHtml = '<span class="pill pill-crit">⚠ Crítico</span>';
-    else           statusHtml = '<span class="pill pill-warn">✗ Abaixo</span>';
-
-    const mColor = !m.media?'var(--text3)':(ok?'#10b981':'#ef4444');
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="td-cat-lbl">${m.categoria}</td>
-      <td class="td-mod">${m.modelo}</td>
-      <td>${m.qtd}</td>
-      <td>${m.abastecidos}</td>
-      <td>${m.volume>0?Math.round(m.volume).toLocaleString('pt-BR'):'—'}</td>
-      <td>${m.meta.toFixed(2)}</td>
-      <td style="color:${mColor};font-weight:600">${m.media?m.media.toFixed(2):'—'}</td>
-      <td style="color:#10b981">${m.melhor?m.melhor.toFixed(2):'—'}</td>
-      <td style="color:#ef4444">${m.pior?m.pior.toFixed(2):'—'}</td>
-      <td>${statusHtml}</td>`;
-    tbody.appendChild(tr);
-  });
+function renderVolume(){
+  const d=D[mi];
+  const vc2=document.getElementById('vctrl');
+  const dCls=d.dif>=0?'pv':'nv';
+  vc2.innerHTML='<div class="vsec">Entradas</div>'+
+    '<div class="vr"><div class="vrl">Volume Comprado<small>Declarado pela empresa</small></div><div class="vrv" style="color:var(--or)">'+fmt(d.vc)+' L</div></div>'+
+    '<div class="vsec">Saídas — Sistema</div>'+
+    '<div class="vr"><div class="vrl">Frota Operacional<small>Ônibus em linha</small></div><div class="vrv">'+fmt(d.vo)+' L</div></div>'+
+    '<div class="vr"><div class="vrl">Apoio + Particular</div><div class="vrv">'+fmt(d.va)+' L</div></div>'+
+    '<div class="vtt"><div class="vr"><div class="vrl">Total Registrado no Sistema</div><div class="vrv">'+fmt(d.vt)+' L</div></div></div>'+
+    '<div class="vsec">Resultado</div>'+
+    '<div class="vr"><div class="vrl">Diferença (Compra − Sistema)</div><div class="vrv '+dCls+'">'+(d.dif>=0?'+':'')+fmt(d.dif)+' L</div></div>'+
+    '<div class="vr"><div class="vrl">Aproveitamento</div><div class="vrv">'+(d.vt/d.vc*100).toFixed(1)+'%</div></div>';
+  const hc=document.getElementById('hcmp');
+  hc.innerHTML='<thead><tr><th>Mês</th><th>Comprado</th><th>Sistema</th><th>Diferença</th><th>Aproveit.</th></tr></thead><tbody>'+
+    D.map(x=>'<tr><td>'+x.mes+'</td><td>'+fmt(x.vc)+' L</td><td>'+fmt(x.vt)+' L</td>'+
+      '<td class="'+(x.dif>=0?'pv':'nv')+'">'+(x.dif>=0?'+':'')+fmt(x.dif)+' L</td>'+
+      '<td>'+(x.vt/x.vc*100).toFixed(1)+'%</td></tr>').join('')+'</tbody>';
 }
 
-// ── INIT ──
-buildVolBars();
-buildCatCards();
-buildRanking();
-buildCatFilter();
-frotas = [...DATA.frotas];
-renderTable();
-buildModeloTable();
+buildMesBtns();
+setMes(3);
+renderHistorico();
+
 </script>
 </body>
 </html>
